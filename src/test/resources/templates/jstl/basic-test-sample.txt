@@ -1,0 +1,45 @@
+
+${ c1 }${ c2 }${ c3 }${ c4 }${ c5 }${ c6 }
+
+<c:if test="( c1 == 'red' )">c1 is red</c:if>
+
+<c:choose>
+
+alfredo montana
+
+	<c:when test="fred==1">1</c:when>
+	<c:when test="fred==2">2</c:when>
+	<c:when test="fred==3">3</c:when>
+	<c:when test="fred==4">4</c:when>
+	<c:otherwise>5</c:otherwise>
+</c:choose>
+
+
+Days: 
+<c:forEach items="days" var="day"><c:choose>
+	
+	
+	this all gets removed 
+	
+	
+		<c:when test="( day == 'monday' )">Monday</c:when>
+
+		<c:when test="( day == 'tuesday' )">Tuesday</c:when>
+		<c:when test="( day == 'wednesday' )">Wednesday</c:when>
+		<c:when test="( day == 'thursday' )">Thursday</c:when>
+		<c:when test="( day == 'friday' )">Friday</c:when>
+		<c:otherwise>Weekend</c:otherwise>
+	</c:choose><c:if test="( varStatus.index == 3 )"> XXX XXX </c:if> varStatus= {index: ${varStatus.index}, count: ${varStatus.count}}
+</c:forEach>
+
+<c:script scope="global">java.lang.System.err.println( "hello world" );
+	
+	fred = 10;</c:script>
+
+<c:catch var="xxx">	xxx is ${ 43 / (4 -5 + 1) }
+	xxx is ${ 100 / bob }</c:catch>
+
+
+<c:log level="warning">
+	xxx is [${xxx == null ? "no error" : xxx}]
+</c:log>

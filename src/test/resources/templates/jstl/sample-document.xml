@@ -1,0 +1,6 @@
+<sample xmlns:c="jstl">
+    <c:script>
+        V_105['color'] = "purple";
+        fred = 'bloggs'
+    </c:script>
+</sample>

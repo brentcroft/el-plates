@@ -1,0 +1,2 @@
+<c:log>hello from test-include.txt</c:log>
+hello from test-include.txt

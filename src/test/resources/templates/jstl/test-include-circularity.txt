@@ -1,0 +1,2 @@
+
+<c:include page='test-include-circularity.txt'/>
