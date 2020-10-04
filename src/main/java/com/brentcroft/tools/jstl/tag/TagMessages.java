@@ -9,7 +9,7 @@ public class TagMessages
 
     public static final String OPT_ATTR_EMPTY = "Optional attribute is empty: [%s]";
 
-    public static final String INCLUDE_CIRCULARITY = "Detected circularity including uri [%s]";
+    public static final String INCLUDE_RECURSION = "Detected disallowed recursion including uri [%s]";
 
     public static final String ENGINE_NAME_NOT_FOUND = "No ScriptEngine found for name: [%s]";
 

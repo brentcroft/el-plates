@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static java.lang.String.format;
+import static java.util.Objects.nonNull;
 
 
 public class JstlIncludeTest
@@ -85,46 +86,66 @@ public class JstlIncludeTest
         final String page = "src/test/resources/templates/jstl/test-include-circularity.txt";
 
         final String[] includeAttrs = {
-                "<c:include page='" + page + "'/>",
+                "<c:include page='" + page + "' recursive='false'/>",
         };
 
+        Exception unexpectedException = null;
+        
         try
         {
             for ( String includeAttr : includeAttrs )
             {
-                jstl.expandText( includeAttr, new MapBindings() );
+                jstl.expandText(
+                    includeAttr,
+                    new MapBindings()
+                );
             }
 
             Assert.fail( "Expected Exception" );
         }
         catch ( Exception e )
         {
-            Assert.assertEquals( "Circularity", format( TagMessages.INCLUDE_CIRCULARITY, page ), e.getMessage() );
+            unexpectedException = e;
+
+            Assert.assertEquals( "Recursion", format( TagMessages.INCLUDE_RECURSION, page), e.getMessage() );
+
+            unexpectedException = null;
+        }
+        finally
+        {
+            if (nonNull(unexpectedException))
+            {
+                unexpectedException.printStackTrace();
+            }
         }
     }
 
 
     @Test
-    public void testInnerContentThrowsException()
+    public void testParams()
     {
         final String page = "src/test/resources/templates/jstl/test-include.txt";
 
         final String[] includeAttrs = {
-                "<c:include page='" + page + "'>xfy<xfy/></c:include>",
+                "<c:include page='" + page + "'><c:param name='fred' value='${ surname }'/></c:include>",
         };
+
+        MapBindings bindings = new MapBindings();
+
+        bindings.put("surname", "bloggs");
 
         try
         {
             for ( String includeAttr : includeAttrs )
             {
-                jstl.expandText( includeAttr, new MapBindings() );
-            }
+                jstl.expandText( includeAttr, bindings );
 
-            Assert.fail( "Expected Exception" );
+                //assertTrue(bindings.isEmpty());
+            }
         }
         catch ( Exception e )
         {
-            Assert.assertEquals( "Circularity", format( TagMessages.PARSER_ERROR_UNEXPECTED_TEXT, "include" ), e.getMessage() );
+            e.printStackTrace();
         }
     }
 }

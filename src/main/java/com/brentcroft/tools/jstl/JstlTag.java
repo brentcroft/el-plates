@@ -288,15 +288,25 @@ public enum JstlTag
                 @Override
                 public JstlElement newJstlElement( JstlTemplateHandler templateHandler, Map< String, String > attributes )
                 {
-                    final boolean isRelative = getAttributeValue( attributes, "relative", "true", Boolean.class );
+                    final String page = getAttributeValueNotEmpty( attributes, "page", String.class );
+                    final boolean relative = getAttributeValue( attributes, "relative", "true", Boolean.class );
+                    final boolean recursive = getAttributeValue( attributes, "recursive", "false", Boolean.class );
 
-                    final String rawUri = getAttributeValueNotEmpty( attributes, "page", String.class );
-
-                    return new JstlInclude(
-                            templateHandler,
-                            isRelative ? templateHandler.relativizeUri( rawUri ) : rawUri );
+                    return new JstlInclude( templateHandler, page, relative, recursive);
                 }
             },
+
+  PARAM
+      {
+        @Override
+        public JstlElement newJstlElement( JstlTemplateHandler templateHandler, Map< String, String > attributes )
+        {
+          final String name = getAttributeValue( attributes, "name", String.class );
+          final String value = getAttributeValue( attributes, "value", String.class );
+
+          return new JstlParam( templateHandler.getELTemplateManager(), name, value);
+        }
+      },
 
 
     /**

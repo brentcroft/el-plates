@@ -53,4 +53,9 @@ public interface JstlElement extends Renderable
     void setDeferred( boolean deferred );
 
     void emitNodeEvents( Element element, Map< String, Object > bindings, JstlDocument.NodeListEmitter emitter ) throws SAXException;
+
+    default String recursionKey()
+    {
+        return "";
+    }
 }

@@ -1,3 +1,5 @@
+
 <c:include page='test-include-parent.txt'/>
+
 <c:log>hello from test-include-grandparent.txt</c:log>
 hello from test-include-grandparent.txt

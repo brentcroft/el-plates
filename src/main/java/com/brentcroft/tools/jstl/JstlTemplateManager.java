@@ -66,10 +66,13 @@ public class JstlTemplateManager implements TextExpander
     private final ELTemplateManager elTemplateManager = new ELTemplateManager();
 
     private final Map< String, JstlTemplate > templates = new HashMap<>();
+    private final Map<String, JstlElement> recursiveElements = new HashMap<>();
+
 
 
     public void dropTemplates()
     {
+        recursiveElements.clear();
         templates.clear();
         elTemplateManager.dropTemplates();
 
@@ -284,9 +287,15 @@ public class JstlTemplateManager implements TextExpander
 
         public void open( String tag, Map< String, String > attributes )
         {
-            final JstlElement jstlElement = JstlTag
+            JstlElement jstlElement = JstlTag
                     .valueOf( tag.toUpperCase() )
                     .newJstlElement( this, attributes );
+
+            // switch to existing element
+            if (recursiveElements.containsKey(jstlElement.recursionKey()))
+            {
+                jstlElement = recursiveElements.get(jstlElement.recursionKey());
+            }
 
             if ( stack.peek() == null )
             {
@@ -374,6 +383,18 @@ public class JstlTemplateManager implements TextExpander
         {
             JstlTemplateManager.this.loadTemplate( uri, this );
         }
+
+        public boolean hasRecursiveJstlElement( final String uri )
+        {
+            return recursiveElements.containsKey(uri);
+        }
+
+        public void addRecursiveJstlElement( final String uri, JstlElement recursiveElement )
+        {
+            recursiveElements.put(uri, recursiveElement);
+        }
+
+
 
         public String expandUri( final String uri, Map< String, Object > rootObjects )
         {

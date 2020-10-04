@@ -1,8 +1,11 @@
 package com.brentcroft.tools.jstl.tag;
 
 import com.brentcroft.tools.jstl.JstlDocument;
+import com.brentcroft.tools.jstl.JstlTemplate;
 import com.brentcroft.tools.jstl.JstlTemplateManager;
 import com.brentcroft.tools.jstl.JstlTemplateManager.JstlTemplateHandler;
+import com.brentcroft.tools.jstl.MapBindings;
+import lombok.Getter;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -17,7 +20,9 @@ import static com.brentcroft.tools.el.ELTemplateManager.getLocalFileURL;
 import static com.brentcroft.tools.jstl.JstlNamespace.prefix;
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
+@Getter
 public class JstlInclude extends AbstractJstlElement
 {
     private final static String TAG = "include";
@@ -25,28 +30,55 @@ public class JstlInclude extends AbstractJstlElement
     private final JstlTemplateManager.JstlTemplateHandler jstlTemplateHandler;
 
     private final String uri;
+    private final String actualUri;
+    private final boolean relative;
+    private final boolean recursive;
 
-
-    public JstlInclude( JstlTemplateHandler jstlTemplateHandler, String uri )
+    public JstlInclude( JstlTemplateHandler jstlTemplateHandler, String uri, boolean relative, boolean recursive )
     {
         this.jstlTemplateHandler = jstlTemplateHandler;
 
         this.uri = uri;
+        this.relative = relative;
+        this.recursive = recursive;
+
+        this.actualUri = relative ? jstlTemplateHandler.relativizeUri( uri ) : uri;
+
+        if ( !recursive)
+        {
+            detectRecursion();
+        }
+
+        if (!jstlTemplateHandler.hasRecursiveJstlElement(actualUri) )
+        {
+            if ( recursive) {
+                // must precede further loading
+                jstlTemplateHandler.addRecursiveJstlElement(actualUri, this);
+            }
+
+            jstlTemplateHandler.loadTemplate( actualUri );
+            innerRenderable = new JstlTemplate( this );
+        }
+    }
+
+    public  String recursionKey()
+    {
+        return actualUri;
+    }
+
+    private void detectRecursion() {
 
         JstlTemplateHandler parent = jstlTemplateHandler.getParent();
 
-        while ( parent != null )
+        while ( nonNull(parent) )
         {
-            if ( uri.equalsIgnoreCase( parent.getUri() ) )
+            if (actualUri.equals(parent.getUri()))
             {
-                throw new RuntimeException( format( TagMessages.INCLUDE_CIRCULARITY, uri ) );
+                throw new RuntimeException( format( TagMessages.INCLUDE_RECURSION, actualUri ) );
             }
 
             parent = parent.getParent();
         }
-
-        // we're not lazy
-        jstlTemplateHandler.loadTemplate( uri );
     }
 
     public String render( Map< String, Object > bindings )
@@ -56,12 +88,20 @@ public class JstlInclude extends AbstractJstlElement
             return toText();
         }
 
-        return jstlTemplateHandler.expandUri( uri, bindings );
+        MapBindings localBindings = new MapBindings( bindings );
+
+        if (nonNull(innerRenderable))
+        {
+            // no output - params applied
+            innerRenderable.render(localBindings);
+        }
+
+        return jstlTemplateHandler.expandUri( actualUri, localBindings );
     }
 
     public String toText()
     {
-        return String.format( "<%s page=\"%s\"/>", prefix( TAG ), uri );
+        return String.format( "<%s page=\"%s\" relative=\"%s\" recursive=\"%s\"/>", prefix( TAG ), uri, relative, recursive );
     }
 
     @Override
@@ -83,7 +123,7 @@ public class JstlInclude extends AbstractJstlElement
                 includes = DocumentBuilderFactory
                         .newInstance()
                         .newDocumentBuilder()
-                        .parse( new InputSource( getLocalFileURL( JstlInclude.class, uri ).openStream() ) )
+                        .parse( new InputSource( getLocalFileURL( JstlInclude.class, actualUri ).openStream() ) )
                         .getChildNodes();
 
                 element.setUserData( key, includes, null );

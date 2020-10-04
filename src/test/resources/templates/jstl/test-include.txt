@@ -1,2 +1,5 @@
-<c:log>hello from test-include.txt</c:log>
+
+
+<c:log>fred ${ fred } says hello from test-include.txt</c:log>
+
 hello from test-include.txt
