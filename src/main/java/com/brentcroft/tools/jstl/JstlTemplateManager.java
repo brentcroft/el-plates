@@ -53,7 +53,7 @@ public class JstlTemplateManager implements TextExpander
     public String ATTRIBUTE_REGEX = "(\\w+)=(\"([^\"]*)\"|'([^']*)')";
 
     public String COMMENT_REGEX = "(?s)<!--.*?-->";
-    public String CDATA_REGEX = "(?s)<![CDATA[(.*?)]]>";
+    public String CDATA_REGEX = "(?s)<!\\[CDATA\\[(.*?)]]>";
 
 
     public Pattern TAG_SELECTOR_PATTERN = Pattern.compile( TAG_REGEX );

@@ -5,9 +5,26 @@ package com.brentcroft.tools.jstl;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class JstlTemplateManagerTest
 {
     private final JstlTemplateManager jstl = new JstlTemplateManager();
+
+
+    @Test
+    public void test_StripCDATA()
+    {
+        JstlTemplateManager jstl = new JstlTemplateManager();
+
+        String expected = "<xyz>hello world</xyz>";
+
+        String data = jstl.maybeStripCData( "<xyz><![CDATA[hello world]]></xyz>" );
+
+        assertEquals(expected, data);
+    }
+
+
 
     @Test
     public void test_StripComments()
