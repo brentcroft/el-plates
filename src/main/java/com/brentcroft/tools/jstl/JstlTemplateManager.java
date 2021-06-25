@@ -47,7 +47,8 @@ public class JstlTemplateManager implements TextExpander
 
     public String TAG_PREFIX = "c:";
 
-    public String TAG_REGEX = "</" + TAG_PREFIX + "(\\w+)>|<" + TAG_PREFIX + "(\\w+)((\\s*\\w+=\"[^\"]*\"|\\s*\\w+='[^']*')*)\\s*(/?)>";
+    public String TAG_REGEX = "</" + TAG_PREFIX + "(\\w+)>|" +
+            "<" + TAG_PREFIX + "(\\w+)((\\s*[\\w:]+=\"[^\"]*\"|\\s*[\\w:]+='[^']*')*)\\s*(/?)>";
 
     public String ATTRIBUTE_REGEX = "(\\w+)=(\"([^\"]*)\"|'([^']*)')";
 

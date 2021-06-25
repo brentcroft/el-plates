@@ -290,6 +290,10 @@ public class JstlForEach extends AbstractJstlElement
             {
                 value = Arrays.asList( ( Object[] ) value );
             }
+            else if ( value instanceof Map< ?, ? > )
+            {
+                value = ( ( Map< ?, ? > ) value ).values();
+            }
 
             if ( value instanceof Iterable< ? > )
             {

@@ -29,6 +29,12 @@ public class JstlInclude extends AbstractJstlElement
 
     private final JstlTemplateManager.JstlTemplateHandler jstlTemplateHandler;
 
+    private static final DocumentBuilderFactory DFB = DocumentBuilderFactory.newInstance();
+
+    static {
+        DFB.setNamespaceAware( true );
+    }
+
     private final String uri;
     private final String actualUri;
     private final boolean relative;
@@ -120,8 +126,7 @@ public class JstlInclude extends AbstractJstlElement
         {
             try
             {
-                includes = DocumentBuilderFactory
-                        .newInstance()
+                includes = DFB
                         .newDocumentBuilder()
                         .parse( new InputSource( getLocalFileURL( JstlInclude.class, actualUri ).openStream() ) )
                         .getChildNodes();

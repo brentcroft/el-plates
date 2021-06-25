@@ -179,13 +179,12 @@ public class ELTemplateManager implements TextExpander
 
     /**
      * Find a template and return it's rendering of a Map by the template.
-     *
+     * <p>
      * If a template is not already cached (with the key
      * <code>templateUri</code>) then a new template is built (and cached) by
      * opening, and parsing the stream from <code>templateUri</code>.
-     *
+     * <p>
      * Return the rendering of the Map <code>rootObjects</code> by the template.
-     *
      *
      * @param uri         identifies a template
      * @param rootObjects a Map of root objects (to make accessible in EL expressions in
@@ -212,7 +211,7 @@ public class ELTemplateManager implements TextExpander
 
     /**
      * Only allow one thread to load a template at any one time.
-     *
+     * <p>
      * If the desired template has already been loaded then just return
      * otherwise load and cache the template.
      *
@@ -252,7 +251,7 @@ public class ELTemplateManager implements TextExpander
 
     /**
      * Builds an anonymous <code>ELTemplate</code> from the supplied text.
-     *
+     * <p>
      * The template is not cached (it has no uri).
      *
      * @param elText the text to be decomposed into an ELTemplate
@@ -282,9 +281,9 @@ public class ELTemplateManager implements TextExpander
     /**
      * A decomposition of a text stream into a list of
      * <code>ELTemplateElement</code> elements.
-     *
+     * <p>
      * Each <code>ELTemplateElement</code> has a type that is one of:
-     *
+     * <p>
      * LITERAL, VALUE_EXPRESSION or TEMPLATE_REF.
      */
     public class ELTemplate implements Renderable
@@ -641,12 +640,12 @@ public class ELTemplateManager implements TextExpander
 
     /**
      * Normalize a uri to a local URL.
-     *
+     * <p>
      * If clazz.getClassLoader().getResource( <code>templateUri</code>) produces
      * a URL then return it,
-     *
+     * <p>
      * otherwise
-     *
+     * <p>
      * return new File(<code>templateUri</code> ).toURI().toURL().
      *
      * @param filepath the unexpanded uri
@@ -665,6 +664,11 @@ public class ELTemplateManager implements TextExpander
 
         try
         {
+            if ( filepath.startsWith( "file:" ) )
+            {
+                return new URL( filepath );
+            }
+
             return new File( filepath ).toURI().toURL();
         }
         catch ( MalformedURLException e )
