@@ -53,6 +53,7 @@ public class JstlTemplateManager implements TextExpander
     public String ATTRIBUTE_REGEX = "(\\w+)=(\"([^\"]*)\"|'([^']*)')";
 
     public String COMMENT_REGEX = "(?s)<!--.*?-->";
+    public String CDATA_REGEX = "(?s)<![CDATA[(.*?)]]>";
 
 
     public Pattern TAG_SELECTOR_PATTERN = Pattern.compile( TAG_REGEX );
@@ -63,12 +64,12 @@ public class JstlTemplateManager implements TextExpander
 
     private boolean stripComments = true;
 
+    public Pattern CDATA_SELECTOR_PATTERN = Pattern.compile( CDATA_REGEX );
 
     private final ELTemplateManager elTemplateManager = new ELTemplateManager();
 
     private final Map< String, JstlTemplate > templates = new HashMap<>();
-    private final Map<String, JstlElement> recursiveElements = new HashMap<>();
-
+    private final Map< String, JstlElement > recursiveElements = new HashMap<>();
 
 
     public void dropTemplates()
@@ -120,8 +121,8 @@ public class JstlTemplateManager implements TextExpander
      * map of root objects, in the context of the supplied uri (e.g. for
      * relativizing embedded paths)..
      *
-     * @param jstlText the jstlText to be expanded
-     * @param uri      a uri against which any embedded paths are relativized
+     * @param jstlText    the jstlText to be expanded
+     * @param uri         a uri against which any embedded paths are relativized
      * @param rootObjects a context map of root objects
      * @return the expanded jstlText
      */
@@ -133,13 +134,12 @@ public class JstlTemplateManager implements TextExpander
 
     /**
      * Find a template and return it's rendering of a Map by the template.
-     *
+     * <p>
      * If a template is not already cached (with the key
      * <code>templateUri</code>) then a new template is built (and cached) by
      * opening, and parsing the stream from <code>templateUri</code>.
-     *
+     * <p>
      * Return the rendering of the Map <code>rootObjects</code> by the template.
-     *
      *
      * @param uri         identifies a template
      * @param rootObjects a Map of root objects (to make accessible in EL expressions in
@@ -165,11 +165,11 @@ public class JstlTemplateManager implements TextExpander
 
     /**
      * Only allow one thread to load a template at any one time.
-     *
+     * <p>
      * If the desired template has already been loaded then just return
      * otherwise load and cache the template.
      *
-     * @param uri the uri of the template to load
+     * @param uri           the uri of the template to load
      * @param parentHandler a root handler for any new template
      */
     public synchronized void loadTemplate( final String uri, final JstlTemplateHandler parentHandler )
@@ -194,7 +194,7 @@ public class JstlTemplateManager implements TextExpander
 
     /**
      * Builds an anonymous <code>JstlTemplate</code> from the supplied text.
-     *
+     * <p>
      * The template is not cached (it has no uri).
      *
      * @param jstlText the text to be decomposed into a JstlTemplate
@@ -212,11 +212,11 @@ public class JstlTemplateManager implements TextExpander
     /**
      * Builds an anonymous <code>JstlTemplate</code> from the supplied text, in
      * the context of the supplied uri (e.g. for relativizing embedded paths).
-     *
+     * <p>
      * The template is not cached.
      *
      * @param jstlText the text to be decomposed into a JstlTemplate
-     * @param uri the (notional) location of the jstlText
+     * @param uri      the (notional) location of the jstlText
      * @return the new JstlTemplate
      */
     public JstlTemplate buildTemplate( String jstlText, final String uri )
@@ -231,7 +231,7 @@ public class JstlTemplateManager implements TextExpander
 
     /**
      * Switch off/on the stripping of HTML style comments.
-     *
+     * <p>
      * This is switched on by default.
      *
      * @param stripComments if true then comments will be stripped from input prior to rendering
@@ -293,9 +293,9 @@ public class JstlTemplateManager implements TextExpander
                     .newJstlElement( this, attributes );
 
             // switch to existing element
-            if (recursiveElements.containsKey(jstlElement.recursionKey()))
+            if ( recursiveElements.containsKey( jstlElement.recursionKey() ) )
             {
-                jstlElement = recursiveElements.get(jstlElement.recursionKey());
+                jstlElement = recursiveElements.get( jstlElement.recursionKey() );
             }
 
             if ( stack.peek() == null )
@@ -387,14 +387,13 @@ public class JstlTemplateManager implements TextExpander
 
         public boolean hasRecursiveJstlElement( final String uri )
         {
-            return recursiveElements.containsKey(uri);
+            return recursiveElements.containsKey( uri );
         }
 
         public void addRecursiveJstlElement( final String uri, JstlElement recursiveElement )
         {
-            recursiveElements.put(uri, recursiveElement);
+            recursiveElements.put( uri, recursiveElement );
         }
-
 
 
         public String expandUri( final String uri, Map< String, Object > rootObjects )
@@ -540,6 +539,11 @@ public class JstlTemplateManager implements TextExpander
 
     public String maybeStripComments( String text )
     {
-        return stripComments ? COMMENT_SELECTOR_PATTERN.matcher( text ).replaceAll( "" ) : text;
+        return maybeStripCData( stripComments ? COMMENT_SELECTOR_PATTERN.matcher( text ).replaceAll( "" ) : text );
+    }
+
+    public String maybeStripCData( String text )
+    {
+        return CDATA_SELECTOR_PATTERN.matcher( text ).replaceAll( "$1" );
     }
 }

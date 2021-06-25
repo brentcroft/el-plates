@@ -1,6 +1,7 @@
 <sample xmlns:c="jstl">
-    <c:script>
+    <c:script><![CDATA[
         V_105['color'] = "purple";
         fred = 'bloggs'
+        ]]>
     </c:script>
 </sample>

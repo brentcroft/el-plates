@@ -14,13 +14,17 @@ import static org.junit.Assert.assertNull;
 
 public class JstlDocumentTest
 {
+
     @Test
     public void renderEvents() throws SAXException, ParserConfigurationException, IOException
     {
+        DocumentBuilderFactory DBF = DocumentBuilderFactory
+                .newInstance();
+        DBF.setNamespaceAware( true );
+
         JstlDocument jstl = new JstlDocument();
         jstl.setContentHandler( new DefaultHandler() );
-        jstl.setDocument( DocumentBuilderFactory
-                .newInstance()
+        jstl.setDocument( DBF
                 .newDocumentBuilder()
                 .parse( "src/test/resources/templates/jstl/sample-document.xml" ) );
 
