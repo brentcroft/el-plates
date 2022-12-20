@@ -7,7 +7,7 @@ import com.brentcroft.tools.jstl.MapBindings;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.el.ValueExpression;
+import jakarta.el.*;
 import java.util.Map;
 
 import static com.brentcroft.tools.jstl.JstlNamespace.prefix;

@@ -4,7 +4,8 @@ import com.brentcroft.tools.jstl.StringUpcaster;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
-import javax.el.*;
+import jakarta.el.*;
+//import javax.el.*;
 import java.beans.FeatureDescriptor;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -61,7 +62,7 @@ public class SimpleELContextFactory implements ELContextFactory
         {
             // see:
             // http://docs.oracle.com/javase/6/docs/api/java/util/Formatter.html
-            mapFunction( "format", String.class.getMethod( "format", String.class, Object[].class ) );
+            mapFunction( "format", ELFunctions.class.getMethod( "format", String.class, List.class ) );
             mapFunction( "replaceAll", ELFunctions.class.getMethod( "replaceAll", String.class, String.class, String.class ) );
 
 

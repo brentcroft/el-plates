@@ -82,7 +82,7 @@ public class ELTemplateManagerTest
 
         assertEquals(
                 "20 30 40",
-                el.expandText( "${c:format( a, x, y, z)}",
+                el.expandText( "${c:format( a, [x, y, z])}",
                         new MapBindings()
                                 .withEntry( "a", "%s %s %s" )
                                 .withEntry( "x", 20 )
@@ -92,7 +92,7 @@ public class ELTemplateManagerTest
 
         assertEquals(
                 " 40  30  20  10",
-                el.expandText( "${c:format( text, a, b, c, d)}",
+                el.expandText( "${c:format( text, [a, b, c, d])}",
                         new MapBindings()
                                 .withEntry( "text", "%4$3s %3$3s %2$3s %1$3s" )
                                 .withEntry( "a", 10 )
@@ -102,7 +102,7 @@ public class ELTemplateManagerTest
 
         assertEquals(
                 "Amount gained or lost since last statement: $ (1,750.23)",
-                el.expandText( "${c:format( text, money)}",
+                el.expandText( "${c:format( text, [money])}",
                         new MapBindings()
                                 .withEntry( "text", "Amount gained or lost since last statement: $ %(,.2f" )
                                 .withEntry( "money", - 1750.23 ) ) );
@@ -122,7 +122,7 @@ public class ELTemplateManagerTest
 
         assertEquals(
                 "Duke's Birthday: 05 23,1995",
-                el.expandText( "${c:format( text, date)}",
+                el.expandText( "${c:format( text, [ date ] )}",
                         new MapBindings()
                                 .withEntry( "text", "Duke's Birthday: %1$tm %1$te,%1$tY" )
                                 .withEntry( "date", new GregorianCalendar( 1995, Calendar.MAY, 23 ) ) ) );
@@ -135,15 +135,15 @@ public class ELTemplateManagerTest
     {
         assertEquals(
                 "2018-08-21",
-                el.expandText( "${ c:format( '%1$tY-%1$tm-%1$td', c:getTime( '2018-08-21T00:00:00' ) ) }", null ) );
+                el.expandText( "${ c:format( '%1$tY-%1$tm-%1$td', [ c:getTime( '2018-08-21T00:00:00' ) ] ) }", null ) );
 
         assertEquals(
                 new SimpleDateFormat( "yyyy-MM-dd" ).format( new Date() ),
-                el.expandText( "${ c:format( '%1$tY-%1$tm-%1$td', c:currentTimeMillis() ) }", null ) );
+                el.expandText( "${ c:format( '%1$tY-%1$tm-%1$td', [ c:currentTimeMillis() ] ) }", null ) );
 
         assertEquals(
                 new SimpleDateFormat( "yyyy-MM-dd" ).format( new Date() ),
-                el.expandText( "${ c:format( '%1$tY-%1$tm-%1$td', c:now() ) }", null ) );
+                el.expandText( "${ c:format( '%1$tY-%1$tm-%1$td', [ c:now() ] ) }", null ) );
 
     }
 

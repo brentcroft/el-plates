@@ -55,10 +55,10 @@ public class JstlTemplateManagerTest
                 "        days = [ 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ];\n" +
                 "        day  = '' + ( java.lang.System.currentTimeMillis() % days.length );\n" +
                 "    </c:script>\n" +
-                "    generated: ${ c:format( '%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL', c:now() ) }\n" +
+                "    generated: ${ c:format( '%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL', [ c:now() ] ) }\n" +
                 "    <c:choose>\n" +
-                "        <c:when test=\"${ days[ day ] eq c:format( '%tA', c:now() ) }\">${ days[ day ] } is special</c:when>\n" +
-                "        <c:otherwise>${ c:format( '%tA', c:now() ) } is ordinary (${ days[ day ] } is special)</c:otherwise>\n" +
+                "        <c:when test=\"${ days[ day ] eq c:format( '%tA', [ c:now() ] ) }\">${ days[ day ] } is special</c:when>\n" +
+                "        <c:otherwise>${ c:format( '%tA', [ c:now() ] ) } is ordinary (${ days[ day ] } is special)</c:otherwise>\n" +
                 "    </c:choose>";
 
         System.out.println( jstl.expandText( text, new MapBindings() ) );

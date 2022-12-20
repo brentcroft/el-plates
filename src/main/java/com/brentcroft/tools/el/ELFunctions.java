@@ -6,8 +6,6 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static java.lang.String.format;
-
 public class ELFunctions
 {
     public static String username()
@@ -37,7 +35,9 @@ public class ELFunctions
         return list;
     }
 
-
+    public static String format(String pattern, List<Object> items) {
+        return String.format( pattern, new ArrayList<>( items ).toArray() );
+    }
 
     public static Float boxFloat( Float f )
     {
@@ -141,6 +141,6 @@ public class ELFunctions
 
     public static void systemOutPrintln( String format, Object... args )
     {
-        System.out.println( format( format, args ) );
+        System.out.printf( ( format ) + "%n", args );
     }
 }
