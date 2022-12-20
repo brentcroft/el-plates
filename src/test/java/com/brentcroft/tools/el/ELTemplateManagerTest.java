@@ -131,6 +131,14 @@ public class ELTemplateManagerTest
 
 
     @Test
+    public void test_system_user_properties()
+    {
+        assertEquals( System.getProperty( "user.name" ), el.expandText( "${ c:username() }", null ) );
+        assertEquals( System.getProperty( "user.home" ), el.expandText( "${ c:userhome() }", null ) );
+    }
+
+
+    @Test
     public void test_DateFormatting()
     {
         assertEquals(

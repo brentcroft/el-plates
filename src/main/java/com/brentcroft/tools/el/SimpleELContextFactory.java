@@ -55,16 +55,10 @@ public class SimpleELContextFactory implements ELContextFactory
     }
 
     {
-        /*
-         * functions available in EL expressions
-         */
         try
         {
-            // see:
-            // http://docs.oracle.com/javase/6/docs/api/java/util/Formatter.html
             mapFunction( "format", ELFunctions.class.getMethod( "format", String.class, List.class ) );
             mapFunction( "replaceAll", ELFunctions.class.getMethod( "replaceAll", String.class, String.class, String.class ) );
-
 
             mapFunction( "parseBytes", ELFunctions.class.getMethod( "bytesAsString", byte[].class, String.class ) );
             mapFunction( "fileExists", ELFunctions.class.getMethod( "fileExists", String.class ) );
@@ -79,6 +73,7 @@ public class SimpleELContextFactory implements ELContextFactory
             mapFunction( "random", ELFunctions.class.getMethod( "random" ) );
 
             mapFunction( "username", ELFunctions.class.getMethod( "username" ) );
+            mapFunction( "userhome", ELFunctions.class.getMethod( "userhome" ) );
 
             mapFunction( "uuid", UUID.class.getMethod( "randomUUID" ) );
             mapFunction( "radix", Long.class.getMethod( "toString", long.class, int.class ) );

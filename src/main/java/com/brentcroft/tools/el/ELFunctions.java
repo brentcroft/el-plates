@@ -13,6 +13,11 @@ public class ELFunctions
         return System.getProperty( "user.name" );
     }
 
+    public static String userhome()
+    {
+        return System.getProperty( "user.home" );
+    }
+
     public static String replaceAll( String source, String regex, String rep )
     {
         return Optional
