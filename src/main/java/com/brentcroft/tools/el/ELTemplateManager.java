@@ -250,6 +250,21 @@ public class ELTemplateManager implements TextExpander
     }
 
     /**
+     * Evaluates the supplied <code>EL expression</code> (i.e. minus the dollar and braces)
+     * with respect to the supplied map of root
+     * objects.
+     *
+     * @param expression the EL expression to be expanded (minus the dollar and braces)
+     * @return the expanded elText
+     */
+    public Object eval( String expression, Map< String, Object > rootObjects )
+    {
+        ELContext ec = getELContext(rootObjects);
+        ValueExpression exp = getExpressionFactory().createValueExpression(ec, "${" + expression + '}', Object.class);
+        return exp.getValue(ec);
+    }
+
+    /**
      * Builds an anonymous <code>ELTemplate</code> from the supplied text.
      * <p>
      * The template is not cached (it has no uri).
@@ -503,6 +518,8 @@ public class ELTemplateManager implements TextExpander
         // 125
         private static final char END = '}';
 
+        // 125
+        private static final char ESC = '\\';
 
         /*
          * Copied (and modified from MrTemplate - thanks Frank)
@@ -514,6 +531,7 @@ public class ELTemplateManager implements TextExpander
 
             int state = OUTSIDE;
             boolean pilot2 = false;
+            boolean escaped = false;
 
             final StringBuilder token = new StringBuilder();
             final StringBuilder literal = new StringBuilder();
@@ -523,45 +541,58 @@ public class ELTemplateManager implements TextExpander
             {
                 switch ( state + c )
                 {
+                    case INSIDE + ESC:
+                        if (state == INSIDE) {
+                            escaped = true;
+                        }
+                        break;
+
                     case OUTSIDE + PILOT2:
-                        pilot2 = true;
-                        state = ENTERING;
-                        break;
-
-                    case OUTSIDE + PILOT:
-                        pilot2 = false;
-                        state = ENTERING;
-                        break;
-
-                    case ENTERING + START:
-                        state = INSIDE;
-                        break;
-
-                    case INSIDE + END:
-
-                        state = OUTSIDE;
-
-                        elTemplate.addLiteral( literal.toString() );
-
-                        literal.setLength( 0 );
-
-                        final String tokenText = token.toString().trim();
-
-                        if ( tokenText.length() < 1 )
+                        if (!escaped)
                         {
-                            throw new ELTemplateException( "EL Template has no tokenText!" );
+                            pilot2 = true;
+                            state = ENTERING;
+                            break;
+                        }
+                    case OUTSIDE + PILOT:
+                        if (!escaped)
+                        {
+                            pilot2 = false;
+                            state = ENTERING;
+                            break;
+                        }
+                    case ENTERING + START:
+                        if (!escaped)
+                        {
+                            state = INSIDE;
+                            break;
+                        }
+                    case INSIDE + END:
+                        if (!escaped) {
+                            state = OUTSIDE;
+
+                            elTemplate.addLiteral( literal.toString() );
+
+                            literal.setLength( 0 );
+
+                            final String tokenText = token.toString().trim();
+
+                            if ( tokenText.length() < 1 )
+                            {
+                                throw new ELTemplateException( "EL Template has no tokenText!" );
+                            }
+
+                            elTemplate.addValueExpression( ( pilot2 ? "#{" : "${" ) + tokenText + "}" );
+
+                            token.setLength( 0 );
+
+                            pilot2 = false;
+
+                            break;
                         }
 
-                        elTemplate.addValueExpression( ( pilot2 ? "#{" : "${" ) + tokenText + "}" );
-
-                        token.setLength( 0 );
-
-                        pilot2 = false;
-
-                        break;
-
-
                     default:
+                        escaped = false;
                         switch ( state )
                         {
                             case ENTERING: // got $ or # without { - treat it as

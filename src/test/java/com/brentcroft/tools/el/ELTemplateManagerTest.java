@@ -279,4 +279,34 @@ public class ELTemplateManagerTest
 
         System.out.println( actual );
     }
+
+
+    @Test
+    public void test_eval()
+    {
+        final String expected = "{a=[1, 2, 3], b=[2, 3, 1], c=[3, 1, 2]}";
+
+        final Object actual = el.eval(
+                "{ 'a': [1,2,3], 'b': [2,3,1], 'c': [3,1,2] }",
+                new MapBindings() );
+
+        assertEquals( expected, actual.toString() );
+
+        System.out.println( actual );
+    }
+
+
+    @Test
+    public void test_escape()
+    {
+        final String expected = "{a=[1, 2, 3], b=[2, 3, 1], c=[3, 1, 2]}";
+
+        final Object actual = el.expandText(
+                "${ { 'a': [1,2,3], 'b': [2,3,1], 'c': [3,1,2] \\} }",
+                new MapBindings() );
+
+        assertEquals( expected, actual.toString() );
+
+        System.out.println( actual );
+    }
 }
