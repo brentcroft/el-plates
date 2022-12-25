@@ -55,7 +55,7 @@ public class ELTemplateManager implements TextExpander
 {
     private ExpressionFactory expressionFactory = null;
 
-    private SimpleELContextFactory elContextFactory = new SimpleELContextFactory();
+    private final SimpleELContextFactory elContextFactory = new SimpleELContextFactory();
 
     public static final String DEFAULT_TEMPLATE_EXTENSION = ".tpl";
 
@@ -255,7 +255,7 @@ public class ELTemplateManager implements TextExpander
      * objects.
      *
      * @param expression the EL expression to be expanded (minus the dollar and braces)
-     * @return the expanded elText
+     * @return the evaluated expression result
      */
     public Object eval( String expression, Map< String, Object > rootObjects )
     {

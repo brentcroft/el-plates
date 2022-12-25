@@ -131,6 +131,20 @@ public class JstlTemplateManager implements TextExpander
         return buildTemplate( jstlText, uri ).render( rootObjects );
     }
 
+    /**
+     * Evaluates the supplied <code>EL</code> expression and returns the result.
+     *
+     * NB: this simply calls <code>getELTemplateManager().eval( elExpression,rootObjects )</code>
+     *
+     * @param elExpression    the jstlText to be expanded
+     * @param rootObjects a context map of root objects
+     * @return the expanded jstlText
+     */
+    public Object eval( String elExpression, Map< String, Object > rootObjects )
+    {
+        return getELTemplateManager().eval( elExpression,rootObjects );
+    }
+
 
     /**
      * Find a template and return it's rendering of a Map by the template.
