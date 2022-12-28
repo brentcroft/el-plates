@@ -1,11 +1,10 @@
 package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.jstl.StringUpcaster;
+import jakarta.el.*;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
-import jakarta.el.*;
-//import javax.el.*;
 import java.beans.FeatureDescriptor;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -16,21 +15,7 @@ import static java.lang.String.format;
 
 
 /**
- * This is a factory for making our own ELContext objects.
- *
- * <p>
- * Its probably more complicated than we need, although it doesn't use a
- * RootPropertyMapper like the SimpleContext class in JUEL.
- *
- * <p>
- * Highly influenced by this article:
- *
- * <pre>
- * http://illegalargumentexception.blogspot.co.uk/2008/04/java-using-el-outside-j2ee.html
- * </pre>
- *
- * <p>
- * Also, worth looking at the source code in JUEL.
+ * Factory for ELContext objects.
  *
  * @author ADobson
  */
@@ -88,11 +73,14 @@ public class SimpleELContextFactory implements ELContextFactory
             mapFunction( "consolePassword", ELFunctions.class.getMethod( "consolePassword", String.class, char[].class ) );
             mapFunction( "consolePasswordAsString", ELFunctions.class.getMethod( "consolePasswordAsString", String.class, String.class ) );
             mapFunction( "consoleFormat", ELFunctions.class.getMethod( "consoleFormat", String.class, Object[].class ) );
-            mapFunction( "println", ELFunctions.class.getMethod( "systemOutPrintln", String.class, Object[].class ) );
 
             mapFunction( "toStringSet", StringUpcaster.class.getMethod( "toStringSet", String.class ) );
-
             mapFunction( "sort", ELFunctions.class.getMethod( "sort", Collection.class, Comparator.class ) );
+
+            mapFunction( "println", ELFunctions.class.getMethod( "println", Object.class ) );
+            mapFunction( "camelCase", ELFunctions.class.getMethod( "camelCase", String.class ) );
+            mapFunction( "pause", ELFunctions.class.getMethod( "pause", String.class ) );
+            mapFunction( "textToFile", ELFunctions.class.getMethod( "textToFile", String.class, String.class ) );
         }
         catch ( Exception e )
         {
@@ -111,18 +99,15 @@ public class SimpleELContextFactory implements ELContextFactory
                 .collect( Collectors.joining() );
     }
 
-
     public ELContext getELContext( Map< ?, ? > rootObjects )
     {
         return new SimpleELContext( rootObjects );
     }
 
-
     public ELContext getELConfigContext()
     {
         return new RootELContext( null );
     }
-
 
     class SimpleELContext extends ELContext
     {
@@ -182,7 +167,6 @@ public class SimpleELContextFactory implements ELContextFactory
         }
     }
 
-
     static class SimpleELResolver extends ELResolver
     {
         private final ELResolver delegate = new MapELResolver();
@@ -203,6 +187,7 @@ public class SimpleELContextFactory implements ELContextFactory
             }
             return delegate.getValue( context, base, property );
         }
+
 
         @Override
         public Class< ? > getCommonPropertyType( ELContext context, Object arg1 )
@@ -234,7 +219,6 @@ public class SimpleELContextFactory implements ELContextFactory
             delegate.setValue( context, arg1, arg2, arg3 );
         }
     }
-
 
     static VariableMapper newVariableMapper()
     {

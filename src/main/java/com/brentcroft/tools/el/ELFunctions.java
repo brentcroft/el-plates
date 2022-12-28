@@ -1,10 +1,17 @@
 package com.brentcroft.tools.el;
 
+import javax.swing.*;
 import java.io.Console;
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ELFunctions
 {
@@ -49,7 +56,6 @@ public class ELFunctions
         return f;
     }
 
-
     public static Double asDouble( Double f )
     {
         return f;
@@ -64,7 +70,6 @@ public class ELFunctions
     {
         return new File( filename ).exists();
     }
-
 
     public static String bytesAsString( byte[] bytes )
     {
@@ -132,7 +137,6 @@ public class ELFunctions
         console.format( format, args );
     }
 
-
     public static LocalDateTime getTime( String pattern )
     {
         return LocalDateTime.parse( pattern );
@@ -143,9 +147,39 @@ public class ELFunctions
         return LocalDateTime.now();
     }
 
-
-    public static void systemOutPrintln( String format, Object... args )
+    public static String println( Object o )
     {
-        System.out.printf( ( format ) + "%n", args );
+        System.out.println( o );
+        return "OK";
+    }
+
+    public static String pause(String message) {
+        JOptionPane
+                .showMessageDialog(
+                        null,
+                        message,
+                        "Paused",
+                        JOptionPane.INFORMATION_MESSAGE );
+        return "OK";
+    }
+
+    public static String camelCase(String text) {
+        boolean[] isFirst = {true};
+        return Stream
+                .of( text.split("\\s+"))
+                .map( t -> {
+                    if (isFirst[0]) {
+                        isFirst[0] = false;
+                        return t.substring( 0, 1 ).toLowerCase( Locale.ROOT ) + t.substring( 1 );
+                    }
+                    return t.substring( 0, 1 ).toUpperCase( Locale.ROOT ) + t.substring( 1 );
+                } )
+                .collect( Collectors.joining());
+    }
+
+    public static String textToFile(String text, String filename) throws IOException
+    {
+        Files.write( Paths.get(filename), text.getBytes(), StandardOpenOption.CREATE );
+        return "OK";
     }
 }

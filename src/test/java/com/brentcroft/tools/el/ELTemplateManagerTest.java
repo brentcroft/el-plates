@@ -1,6 +1,7 @@
 package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.jstl.MapBindings;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
@@ -295,7 +296,6 @@ public class ELTemplateManagerTest
         System.out.println( actual );
     }
 
-
     @Test
     public void test_escape()
     {
@@ -308,5 +308,38 @@ public class ELTemplateManagerTest
         assertEquals( expected, actual.toString() );
 
         System.out.println( actual );
+    }
+
+    @Test
+    public void test_assignment()
+    {
+        MapBindings bindings = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "color1", "blue" )
+                        .withEntry( "color2", "orange" )
+                        .withEntry( "color3", "yellow" )
+                        .withEntry( "color4", "obtuse" )
+                );
+
+        el.eval("colors.color4 = 'red'", bindings );
+
+        assertEquals( "red", el.expandText( "${ colors.color4 }", bindings ) );
+    }
+
+    @Test
+    @Ignore
+    public void test_lambda()
+    {
+        MapBindings bindings = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "color1", "blue" )
+                        .withEntry( "color2", "orange" )
+                        .withEntry( "color3", "yellow" )
+                        .withEntry( "color4", "obtuse" )
+                );
+
+        String expression = "colors.entrySet().stream().filter( e -> e.getKey().equals( 'color3' ) ).findFirst().getValue()";
+
+        assertEquals( "yellow", el.eval( expression, bindings ) );
     }
 }
