@@ -97,8 +97,6 @@ public class ELTemplateManager implements TextExpander
     public void setExpressionFactoryClass( String expressionFactoryClass )
     {
         this.expressionFactoryClass = expressionFactoryClass;
-
-        // reset
         expressionFactory = null;
     }
 
@@ -116,10 +114,11 @@ public class ELTemplateManager implements TextExpander
 
     public ValueExpression getValueExpression( String expression, Map< ?, ? > rootObjects, Class< ? > clazz )
     {
-        return getExpressionFactory().createValueExpression(
-                getELContext( rootObjects ),
-                expression,
-                clazz );
+        return getExpressionFactory()
+                .createValueExpression(
+                    getELContext( rootObjects ),
+                    expression,
+                    clazz );
     }
 
 
@@ -139,7 +138,9 @@ public class ELTemplateManager implements TextExpander
         {
             try
             {
-                expressionFactory = ( ExpressionFactory ) getClass().getClassLoader().loadClass( expressionFactoryClass )
+                expressionFactory = ( ExpressionFactory ) getClass()
+                        .getClassLoader()
+                        .loadClass( expressionFactoryClass )
                         .newInstance();
 
                 log.fine( () -> "Loaded named ExpressionFactory: " + expressionFactory );
@@ -229,12 +230,10 @@ public class ELTemplateManager implements TextExpander
         templates.put( uri, new ELTemplateBuilder().build( uri ) );
     }
 
-
     public void dropTemplates()
     {
         templates.clear();
     }
-
 
     /**
      * Expands the supplied <code>elText</code> so that all EL tags are replaced
@@ -277,7 +276,6 @@ public class ELTemplateManager implements TextExpander
         return new ELTemplateBuilder().parse( elText );
     }
 
-
     /**
      * Test if the candidate text contains any EL template expressions.
      *
@@ -289,9 +287,7 @@ public class ELTemplateManager implements TextExpander
         return EL_EXPRESSION_PATTERN.matcher( candidate ).find();
     }
 
-
     private final ELContext context = elContextFactory.getELConfigContext();
-
 
     /**
      * A decomposition of a text stream into a list of
@@ -306,7 +302,6 @@ public class ELTemplateManager implements TextExpander
         private final List< ELTemplateElement > elements = new ArrayList<>();
 
         private String localUri;
-
 
         public ELTemplate withUri( String uri )
         {
@@ -468,7 +463,6 @@ public class ELTemplateManager implements TextExpander
 
                 if ( ! lazyCompilation )
                 {
-
                     valueExpression = getExpressionFactory().createValueExpression( context,
                             element,
                             Object.class );
@@ -548,25 +542,22 @@ public class ELTemplateManager implements TextExpander
                         break;
 
                     case OUTSIDE + PILOT2:
-                        if (!escaped)
-                        {
-                            pilot2 = true;
-                            state = ENTERING;
-                            break;
-                        }
+                        pilot2 = true;
+                        state = ENTERING;
+                        break;
+
                     case OUTSIDE + PILOT:
-                        if (!escaped)
-                        {
-                            pilot2 = false;
-                            state = ENTERING;
-                            break;
-                        }
+                        pilot2 = false;
+                        state = ENTERING;
+                        break;
+
                     case ENTERING + START:
                         if (!escaped)
                         {
                             state = INSIDE;
                             break;
                         }
+
                     case INSIDE + END:
                         if (!escaped) {
                             state = OUTSIDE;
@@ -657,7 +648,6 @@ public class ELTemplateManager implements TextExpander
          */
         VALUE_EXPRESSION,
 
-
         /**
          * A template reference.
          *
@@ -665,7 +655,6 @@ public class ELTemplateManager implements TextExpander
          * E.g. ${*header} or ${*header.tpl}
          */
         TEMPLATE_REF,
-
     }
 
 

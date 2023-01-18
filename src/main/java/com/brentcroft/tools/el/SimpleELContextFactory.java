@@ -1,6 +1,7 @@
 package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.jstl.StringUpcaster;
+import com.sun.el.stream.StreamELResolver;
 import jakarta.el.*;
 import lombok.Getter;
 import lombok.extern.java.Log;
@@ -135,6 +136,8 @@ public class SimpleELContextFactory implements ELContextFactory
                 {
                     {
                         add( new SimpleELResolver( rootObjects ) );
+                        add( new StreamELResolver() );
+                        add( new StaticFieldELResolver() );
                         add( new ArrayELResolver() );
                         add( new ListELResolver() );
                         add( new BeanELResolver() );

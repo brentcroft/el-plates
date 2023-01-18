@@ -327,7 +327,6 @@ public class ELTemplateManagerTest
     }
 
     @Test
-    @Ignore
     public void test_lambda()
     {
         MapBindings bindings = new MapBindings()
@@ -338,7 +337,7 @@ public class ELTemplateManagerTest
                         .withEntry( "color4", "obtuse" )
                 );
 
-        String expression = "colors.entrySet().stream().filter( e -> e.getKey().equals( 'color3' ) ).findFirst().getValue()";
+        String expression = "colors.entrySet().stream().filter( e -> e.getKey().equals( 'color3' ) ).findFirst().orElse(null).getValue()";
 
         assertEquals( "yellow", el.eval( expression, bindings ) );
     }
