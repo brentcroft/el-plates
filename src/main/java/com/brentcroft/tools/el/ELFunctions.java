@@ -1,5 +1,8 @@
 package com.brentcroft.tools.el;
 
+import com.brentcroft.tools.jstl.StringUpcaster;
+import jakarta.el.LambdaExpression;
+
 import javax.swing.*;
 import java.io.Console;
 import java.io.File;
@@ -15,6 +18,63 @@ import java.util.stream.Stream;
 
 public class ELFunctions
 {
+    public static void install( StaticMethodMapper em) {
+        try
+        {
+            em.mapFunction( "format", ELFunctions.class.getMethod( "format", String.class, List.class ) );
+            em.mapFunction( "replaceAll", ELFunctions.class.getMethod( "replaceAll", String.class, String.class, String.class ) );
+
+            em.mapFunction( "parseBytes", ELFunctions.class.getMethod( "bytesAsString", byte[].class, String.class ) );
+            em.mapFunction( "fileExists", ELFunctions.class.getMethod( "fileExists", String.class ) );
+
+
+            em.mapFunction( "int", Integer.class.getMethod( "valueOf", String.class ) );
+            em.mapFunction( "double", Double.class.getMethod( "valueOf", String.class ) );
+            em.mapFunction( "pow", Math.class.getMethod( "pow", double.class, double.class ) );
+
+            // capture as float
+            em.mapFunction( "float", ELFunctions.class.getMethod( "boxFloat", Float.class ) );
+            em.mapFunction( "random", ELFunctions.class.getMethod( "random" ) );
+
+            em.mapFunction( "username", ELFunctions.class.getMethod( "username" ) );
+            em.mapFunction( "userhome", ELFunctions.class.getMethod( "userhome" ) );
+
+            em.mapFunction( "uuid", UUID.class.getMethod( "randomUUID" ) );
+            em.mapFunction( "radix", Long.class.getMethod( "toString", long.class, int.class ) );
+
+            em.mapFunction( "currentTimeMillis", System.class.getMethod( "currentTimeMillis" ) );
+
+            em.mapFunction( "getTime", ELFunctions.class.getMethod( "getTime", String.class ) );
+            em.mapFunction( "now", ELFunctions.class.getMethod( "now" ) );
+
+
+            em.mapFunction( "console", ELFunctions.class.getMethod( "console", String.class, String.class ) );
+            em.mapFunction( "consolePassword", ELFunctions.class.getMethod( "consolePassword", String.class, char[].class ) );
+            em.mapFunction( "consoleFormat", ELFunctions.class.getMethod( "consoleFormat", String.class, Object[].class ) );
+
+            em.mapFunction( "toStringSet", StringUpcaster.class.getMethod( "toStringSet", String.class ) );
+            em.mapFunction( "sort", ELFunctions.class.getMethod( "sort", Collection.class, Comparator.class ) );
+
+            em.mapFunction( "println", ELFunctions.class.getMethod( "println", Object.class ) );
+            em.mapFunction( "camelCase", ELFunctions.class.getMethod( "camelCase", String.class ) );
+            em.mapFunction( "pause", ELFunctions.class.getMethod( "pause", String.class ) );
+            em.mapFunction( "textToFile", ELFunctions.class.getMethod( "textToFile", String.class, String.class ) );
+
+            em.mapFunction( "return", ELFunctions.class.getMethod("raiseReturnException", Object.class) );
+
+//            em.mapFunction( "ifThen", ELFunctions.class.getMethod( "ifThen", LambdaExpression.class, LambdaExpression.class ) );
+//            em.mapFunction( "ifThenElse", ELFunctions.class.getMethod( "ifThenElse", LambdaExpression.class, LambdaExpression.class, LambdaExpression.class ) );
+        }
+        catch ( Exception e )
+        {
+            throw new RuntimeException( "Failed to initialise function map", e );
+        }
+    }
+
+    public static void raiseReturnException(Object value) {
+        throw new ReturnException( value );
+    }
+
     public static String username()
     {
         return System.getProperty( "user.name" );
@@ -111,20 +171,6 @@ public class ELFunctions
         return console.readPassword( prompt );
     }
 
-    @Deprecated()
-    public static String consolePasswordAsString( String prompt, String defaultValue )
-    {
-        Console console = System.console();
-
-        if ( console == null )
-        {
-            return defaultValue;
-        }
-
-        return String.valueOf( console.readPassword( prompt ) );
-    }
-
-
     public static void consoleFormat( String format, Object... args )
     {
         Console console = System.console();
@@ -181,5 +227,25 @@ public class ELFunctions
     {
         Files.write( Paths.get(filename), text.getBytes(), StandardOpenOption.CREATE );
         return "OK";
+    }
+
+
+
+    public static void ifThen( LambdaExpression test, LambdaExpression thenOperation )
+    {
+        final Object [] empty = new Object[]{};
+        if ((Boolean)test.invoke( empty ) ) {
+            thenOperation.invoke( empty );
+        }
+    }
+
+    public static void ifThenElse( LambdaExpression test, LambdaExpression thenOperation, LambdaExpression elseOperation )
+    {
+        final Object[] empty = new Object[]{};
+        if ((Boolean)test.invoke(new Object[]{}) ) {
+            thenOperation.invoke(empty);
+        } else {
+            elseOperation.invoke(empty);
+        }
     }
 }

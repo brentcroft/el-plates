@@ -1,12 +1,9 @@
 package com.brentcroft.tools.el;
 
-import com.brentcroft.tools.jstl.StringUpcaster;
 import com.sun.el.stream.StreamELResolver;
 import jakarta.el.*;
-import lombok.Getter;
 import lombok.extern.java.Log;
 
-import java.beans.FeatureDescriptor;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,6 +21,7 @@ import static java.lang.String.format;
 public class SimpleELContextFactory implements ELContextFactory
 {
     private final Map< String, Method > mappedFunctions = new HashMap<>();
+    private final CompositeELResolver customResolvers = new CompositeELResolver();
 
     public void mapFunction( String unprefixedName, Method staticMethod )
     {
@@ -41,53 +39,7 @@ public class SimpleELContextFactory implements ELContextFactory
     }
 
     {
-        try
-        {
-            mapFunction( "format", ELFunctions.class.getMethod( "format", String.class, List.class ) );
-            mapFunction( "replaceAll", ELFunctions.class.getMethod( "replaceAll", String.class, String.class, String.class ) );
-
-            mapFunction( "parseBytes", ELFunctions.class.getMethod( "bytesAsString", byte[].class, String.class ) );
-            mapFunction( "fileExists", ELFunctions.class.getMethod( "fileExists", String.class ) );
-
-
-            mapFunction( "int", Integer.class.getMethod( "valueOf", String.class ) );
-            mapFunction( "double", Double.class.getMethod( "valueOf", String.class ) );
-            mapFunction( "pow", Math.class.getMethod( "pow", double.class, double.class ) );
-
-            // capture as float
-            mapFunction( "float", ELFunctions.class.getMethod( "boxFloat", Float.class ) );
-            mapFunction( "random", ELFunctions.class.getMethod( "random" ) );
-
-            mapFunction( "username", ELFunctions.class.getMethod( "username" ) );
-            mapFunction( "userhome", ELFunctions.class.getMethod( "userhome" ) );
-
-            mapFunction( "uuid", UUID.class.getMethod( "randomUUID" ) );
-            mapFunction( "radix", Long.class.getMethod( "toString", long.class, int.class ) );
-
-            mapFunction( "currentTimeMillis", System.class.getMethod( "currentTimeMillis" ) );
-
-            mapFunction( "getTime", ELFunctions.class.getMethod( "getTime", String.class ) );
-            mapFunction( "now", ELFunctions.class.getMethod( "now" ) );
-
-
-            mapFunction( "console", ELFunctions.class.getMethod( "console", String.class, String.class ) );
-            mapFunction( "consolePassword", ELFunctions.class.getMethod( "consolePassword", String.class, char[].class ) );
-            mapFunction( "consolePasswordAsString", ELFunctions.class.getMethod( "consolePasswordAsString", String.class, String.class ) );
-            mapFunction( "consoleFormat", ELFunctions.class.getMethod( "consoleFormat", String.class, Object[].class ) );
-
-            mapFunction( "toStringSet", StringUpcaster.class.getMethod( "toStringSet", String.class ) );
-            mapFunction( "sort", ELFunctions.class.getMethod( "sort", Collection.class, Comparator.class ) );
-
-            mapFunction( "println", ELFunctions.class.getMethod( "println", Object.class ) );
-            mapFunction( "camelCase", ELFunctions.class.getMethod( "camelCase", String.class ) );
-            mapFunction( "pause", ELFunctions.class.getMethod( "pause", String.class ) );
-            mapFunction( "textToFile", ELFunctions.class.getMethod( "textToFile", String.class, String.class ) );
-        }
-        catch ( Exception e )
-        {
-            throw new RuntimeException( "Failed to initialise function map", e );
-        }
-
+        ELFunctions.install( this::mapFunction );
         log.fine( this::listMappedFunctions );
     }
 
@@ -102,52 +54,12 @@ public class SimpleELContextFactory implements ELContextFactory
 
     public ELContext getELContext( Map< ?, ? > rootObjects )
     {
-        return new SimpleELContext( rootObjects );
+        return new SimpleELContext( this, rootObjects );
     }
 
     public ELContext getELConfigContext()
     {
         return new RootELContext( null );
-    }
-
-    class SimpleELContext extends ELContext
-    {
-        @Getter
-        protected final FunctionMapper functionMapper = newFunctionMapper();
-
-        @Getter
-        protected final VariableMapper variableMapper = newVariableMapper();
-
-        private final Map< ?, ? > rootObjects;
-
-        protected ELResolver resolver;
-
-        public SimpleELContext( Map< ?, ? > rootObjects )
-        {
-            this.rootObjects = rootObjects;
-        }
-
-        @Override
-        public ELResolver getELResolver()
-        {
-            if ( resolver == null )
-            {
-                resolver = new CompositeELResolver()
-                {
-                    {
-                        add( new SimpleELResolver( rootObjects ) );
-                        add( new StreamELResolver() );
-                        add( new StaticFieldELResolver() );
-                        add( new ArrayELResolver() );
-                        add( new ListELResolver() );
-                        add( new BeanELResolver() );
-                        add( new MapELResolver() );
-                        add( new ResourceBundleELResolver() );
-                    }
-                };
-            }
-            return resolver;
-        }
     }
 
     FunctionMapper newFunctionMapper()
@@ -162,64 +74,32 @@ public class SimpleELContextFactory implements ELContextFactory
         };
     }
 
+    public void addELResolver(ELResolver cELResolver) {
+        customResolvers.add(cELResolver);
+    }
+
+    ELResolver newResolver(Map< ?, ? > rootObjects) {
+        return new CompositeELResolver()
+        {
+            {
+                add( new SimpleELResolver( rootObjects ) );
+                add( customResolvers );
+                add( new StreamELResolver() );
+                add( new StaticFieldELResolver() );
+                add( new ArrayELResolver() );
+                add( new ListELResolver() );
+                add( new BeanELResolver() );
+                add( new MapELResolver() );
+                add( new ResourceBundleELResolver() );
+            }
+        };
+    }
+
     class RootELContext extends SimpleELContext
     {
         public RootELContext( Map< ?, ? > rootObjects )
         {
-            super( rootObjects );
-        }
-    }
-
-    static class SimpleELResolver extends ELResolver
-    {
-        private final ELResolver delegate = new MapELResolver();
-
-        private final Map< ?, ? > userMap;
-
-        public SimpleELResolver( Map< ?, ? > rootObjects )
-        {
-            this.userMap = rootObjects;
-        }
-
-        @Override
-        public Object getValue( ELContext context, Object base, Object property )
-        {
-            if ( base == null )
-            {
-                base = userMap;
-            }
-            return delegate.getValue( context, base, property );
-        }
-
-
-        @Override
-        public Class< ? > getCommonPropertyType( ELContext context, Object arg1 )
-        {
-            return delegate.getCommonPropertyType( context, arg1 );
-        }
-
-        @Override
-        public Iterator< FeatureDescriptor > getFeatureDescriptors( ELContext context, Object arg1 )
-        {
-            return delegate.getFeatureDescriptors( context, arg1 );
-        }
-
-        @Override
-        public Class< ? > getType( ELContext context, Object arg1, Object arg2 )
-        {
-            return delegate.getType( context, arg1, arg2 );
-        }
-
-        @Override
-        public boolean isReadOnly( ELContext context, Object arg1, Object arg2 )
-        {
-            return delegate.isReadOnly( context, arg1, arg2 );
-        }
-
-        @Override
-        public void setValue( ELContext context, Object arg1, Object arg2, Object arg3 )
-        {
-            delegate.setValue( context, arg1, arg2, arg3 );
+            super( SimpleELContextFactory.this, rootObjects );
         }
     }
 

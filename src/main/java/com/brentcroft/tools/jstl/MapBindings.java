@@ -1,18 +1,11 @@
 package com.brentcroft.tools.jstl;
 
 
-import com.brentcroft.tools.el.ELTemplateException;
-import com.brentcroft.tools.el.ELTemplateManager;
-import com.brentcroft.tools.el.TextExpander;
+import lombok.Getter;
 
 import javax.script.Bindings;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import static java.lang.String.format;
 
 
 /**
@@ -21,6 +14,7 @@ import static java.lang.String.format;
  *
  * @author ADobson
  */
+@Getter
 public class MapBindings extends LinkedHashMap< String, Object > implements Bindings
 {
     private static final long serialVersionUID = 8422258558562588221L;
@@ -36,11 +30,6 @@ public class MapBindings extends LinkedHashMap< String, Object > implements Bind
     public MapBindings()
     {
         this( null );
-    }
-
-    public Map< String, Object > getParent()
-    {
-        return parent;
     }
 
 
@@ -83,7 +72,6 @@ public class MapBindings extends LinkedHashMap< String, Object > implements Bind
                     ? parent.get( a )
                     : null;
     }
-
 
     @Override
     public boolean containsKey( Object a )

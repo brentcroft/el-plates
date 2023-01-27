@@ -31,8 +31,6 @@ public class ELTemplateManagerTest
     @Test
     public void test_BasicEL02()
     {
-        el.setExpressionFactoryClass( null );
-
         final String color = "blue-grey";
 
         assertEquals(
@@ -327,6 +325,23 @@ public class ELTemplateManagerTest
     }
 
     @Test
+    public void test_return()
+    {
+        MapBindings bindings = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "color1", "blue" )
+                        .withEntry( "color2", "orange" )
+                        .withEntry( "color3", "yellow" )
+                        .withEntry( "color4", "obtuse" )
+                );
+
+        String expression = "colors.last = 23; c:return( 29 ); colors.last = 25";
+
+        assertEquals( 29L, el.eval( expression, bindings ) );
+    }
+
+
+    @Test
     public void test_lambda()
     {
         MapBindings bindings = new MapBindings()
@@ -341,4 +356,25 @@ public class ELTemplateManagerTest
 
         assertEquals( "yellow", el.eval( expression, bindings ) );
     }
+
+//    @Test
+//    public void test_ifThenElse()
+//    {
+//        MapBindings bindings = new MapBindings()
+//                .withEntry( "colors", new MapBindings()
+//                        .withEntry( "color1", "blue" )
+//                        .withEntry( "color2", "orange" )
+//                        .withEntry( "color3", "yellow" )
+//                        .withEntry( "color4", "obtuse" )
+//                );
+//        {
+//            String expression = "c:ifThenElse( () -> colors.color2 == 'orange', () -> c:return( true ), () -> c:return( false ) )";
+//            assertEquals( true, el.eval( expression, bindings ) );
+//        }
+//        {
+//            String expression = "c:ifThenElse( () -> colors.color2 != 'orange', () -> c:return( true ), () -> c:return( false ) )";
+//            assertEquals( false, el.eval( expression, bindings ) );
+//        }
+//    }
+
 }

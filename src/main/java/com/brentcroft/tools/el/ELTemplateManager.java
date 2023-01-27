@@ -4,9 +4,6 @@ package com.brentcroft.tools.el;
 import com.brentcroft.tools.jstl.Renderable;
 import lombok.extern.java.Log;
 import jakarta.el.*;
-//import javax.el.ELContext;
-//import javax.el.ExpressionFactory;
-//import javax.el.ValueExpression;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -63,6 +60,7 @@ public class ELTemplateManager implements TextExpander
 
 
     private final Map< String, ELTemplate > templates = new HashMap<>();
+    private final Map< String, ValueExpression > expressions = new HashMap<>();
 
     // 2013-06-01: ACD: this is what I now would expect by default
     // 2020-01-25: ACD: why?
@@ -72,8 +70,6 @@ public class ELTemplateManager implements TextExpander
     // default load mechanism fails if ELTemplateManager is not loaded by the
     // common class-loader
     private String expressionFactoryClass = null;
-
-    private final boolean lazyCompilation = false;
 
 
     public void mapFunctions( Map< String, Method > functions )
@@ -109,7 +105,6 @@ public class ELTemplateManager implements TextExpander
     public ELContext getELContext( Map< ?, ? > rootObjects )
     {
         return elContextFactory.getELContext( rootObjects );
-
     }
 
     public ValueExpression getValueExpression( String expression, Map< ?, ? > rootObjects, Class< ? > clazz )
@@ -121,6 +116,9 @@ public class ELTemplateManager implements TextExpander
                     clazz );
     }
 
+    public void addResolver(ELResolver resolver) {
+        elContextFactory.addELResolver( resolver );
+    }
 
     private ExpressionFactory getExpressionFactory()
     {
@@ -166,17 +164,6 @@ public class ELTemplateManager implements TextExpander
     {
         this.valueExpressionFilter = valueExpressionFilter;
     }
-
-//    /**
-//     * Set a StandardELFilter to apply to the results of ValueExpressions.
-//     *
-//     * @param standardFilter
-//     */
-//    public void setValueExpressionStandardFilter( StandardELFilter standardFilter )
-//    {
-//        setValueExpressionFilter( standardFilter );
-//    }
-
 
     /**
      * Find a template and return it's rendering of a Map by the template.
@@ -259,8 +246,27 @@ public class ELTemplateManager implements TextExpander
     public Object eval( String expression, Map< String, Object > rootObjects )
     {
         ELContext ec = getELContext(rootObjects);
-        ValueExpression exp = getExpressionFactory().createValueExpression(ec, "${" + expression + '}', Object.class);
-        return exp.getValue(ec);
+
+        if (!expressions.containsKey( expression )) {
+            ValueExpression exp = getExpressionFactory().createValueExpression(ec, "${" + expression + '}', Object.class);
+            expressions.put( expression, exp );
+        }
+        try
+        {
+            return expressions.get( expression ).getValue( ec );
+        }
+        catch (ELException e)
+        {
+            if (e.getCause() instanceof ReturnException)
+            {
+                return ((ReturnException)e.getCause()).getValue();
+            }
+            if (e.getCause() instanceof ELException)
+            {
+                throw (ELException)e.getCause();
+            }
+            throw e;
+        }
     }
 
     /**
@@ -441,12 +447,6 @@ public class ELTemplateManager implements TextExpander
             elements.add( new ELTemplateElement( text.trim(), ELType.VALUE_EXPRESSION ) );
         }
 
-//        void addTemplateRef( String text )
-//        {
-//            elements.add( new ELTemplateElement( text.trim(), ELType.TEMPLATE_REF ) );
-//        }
-
-
         class ELTemplateElement
         {
             private final String element;
@@ -461,12 +461,9 @@ public class ELTemplateManager implements TextExpander
                 this.element = element;
                 this.type = type;
 
-                if ( ! lazyCompilation )
-                {
-                    valueExpression = getExpressionFactory().createValueExpression( context,
-                            element,
-                            Object.class );
-                }
+                valueExpression = getExpressionFactory().createValueExpression( context,
+                        element,
+                        Object.class );
             }
 
             @Override
@@ -613,7 +610,7 @@ public class ELTemplateManager implements TextExpander
                 // ${ at EOF
                 literal.append( ( pilot2 ? PILOT2 : PILOT ) );
                 literal.append( START );
-                literal.append( token.toString() );
+                literal.append( token );
             }
 
             if ( literal.length() > 0 )
