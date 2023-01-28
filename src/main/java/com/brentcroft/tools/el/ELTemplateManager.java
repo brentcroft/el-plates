@@ -262,7 +262,7 @@ public class ELTemplateManager implements TextExpander
         {
             if (e.getCause() instanceof ReturnException)
             {
-                return ((ReturnException)e.getCause()).getValue();
+                return ((ReturnException)e.getCause()).get();
             }
             if (e.getCause() instanceof ELException)
             {

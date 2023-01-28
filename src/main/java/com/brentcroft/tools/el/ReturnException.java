@@ -1,11 +1,17 @@
 package com.brentcroft.tools.el;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+
+import java.util.function.Supplier;
 
 @AllArgsConstructor
-@Getter
-public class ReturnException extends RuntimeException
+public class ReturnException extends RuntimeException implements Supplier<Object>
 {
     private Object value;
+
+    @Override
+    public Object get()
+    {
+        return value;
+    }
 }

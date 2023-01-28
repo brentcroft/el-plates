@@ -42,6 +42,7 @@
 		<jakarta-el.version>4.0.2</jakarta-el.version>
 		<junit.version>4.13.2</junit.version>
 		<lombok.version>1.18.24</lombok.version>
+		<nexus-staging.version>1.6.13</nexus-staging.version>
 		<!-- -->
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<maven.compiler.source>1.8</maven.compiler.source>
@@ -117,7 +118,7 @@
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.7</version>
+				<version>${nexus-staging.version}</version>
 				<extensions>true</extensions>
 				<configuration>
 					<serverId>ossrh</serverId>
