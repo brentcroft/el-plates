@@ -1,7 +1,6 @@
 package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.jstl.StringUpcaster;
-import jakarta.el.LambdaExpression;
 
 import javax.swing.*;
 import java.io.Console;
@@ -62,8 +61,8 @@ public class ELFunctions
 
             em.mapFunction( "return", ELFunctions.class.getMethod("raiseReturnException", Object.class) );
 
-//            em.mapFunction( "ifThen", ELFunctions.class.getMethod( "ifThen", LambdaExpression.class, LambdaExpression.class ) );
-//            em.mapFunction( "ifThenElse", ELFunctions.class.getMethod( "ifThenElse", LambdaExpression.class, LambdaExpression.class, LambdaExpression.class ) );
+            em.mapFunction( "delay", ELFunctions.class.getMethod("delay", long.class ) );
+
         }
         catch ( Exception e )
         {
@@ -199,6 +198,18 @@ public class ELFunctions
         return "OK";
     }
 
+    public static String delay(long millis) {
+        try
+        {
+            Thread.sleep(millis);
+        }
+        catch ( InterruptedException e )
+        {
+            e.printStackTrace();
+        }
+        return "OK";
+    }
+
     public static String pause(String message) {
         JOptionPane
                 .showMessageDialog(
@@ -227,25 +238,5 @@ public class ELFunctions
     {
         Files.write( Paths.get(filename), text.getBytes(), StandardOpenOption.CREATE );
         return "OK";
-    }
-
-
-
-    public static void ifThen( LambdaExpression test, LambdaExpression thenOperation )
-    {
-        final Object [] empty = new Object[]{};
-        if ((Boolean)test.invoke( empty ) ) {
-            thenOperation.invoke( empty );
-        }
-    }
-
-    public static void ifThenElse( LambdaExpression test, LambdaExpression thenOperation, LambdaExpression elseOperation )
-    {
-        final Object[] empty = new Object[]{};
-        if ((Boolean)test.invoke(new Object[]{}) ) {
-            thenOperation.invoke(empty);
-        } else {
-            elseOperation.invoke(empty);
-        }
     }
 }

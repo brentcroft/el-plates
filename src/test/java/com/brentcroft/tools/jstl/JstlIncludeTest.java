@@ -48,7 +48,7 @@ public class JstlIncludeTest
 
         for ( String includeAttr : includeAttrs )
         {
-            jstl.expandText( includeAttr, new MapBindings() );
+            jstl.expandText( includeAttr, new MapBindings().withEntry( "fred", "bloggs" ) );
         }
     }
 
@@ -61,7 +61,7 @@ public class JstlIncludeTest
 
         for ( String includeAttr : includeAttrs )
         {
-            jstl.expandText( includeAttr, new MapBindings() );
+            jstl.expandText( includeAttr, new MapBindings().withEntry( "fred", "bloggs" ) );
         }
     }
 
@@ -75,7 +75,7 @@ public class JstlIncludeTest
 
         for ( String includeAttr : includeAttrs )
         {
-            jstl.expandText( includeAttr, new MapBindings() );
+            jstl.expandText( includeAttr, new MapBindings().withEntry( "fred", "bloggs" ) );
         }
     }
 

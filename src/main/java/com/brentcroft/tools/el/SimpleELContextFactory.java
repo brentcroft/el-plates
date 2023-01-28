@@ -84,6 +84,7 @@ public class SimpleELContextFactory implements ELContextFactory
             {
                 add( new SimpleELResolver( rootObjects ) );
                 add( customResolvers );
+
                 add( new StreamELResolver() );
                 add( new StaticFieldELResolver() );
                 add( new ArrayELResolver() );

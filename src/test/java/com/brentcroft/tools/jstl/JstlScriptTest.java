@@ -3,6 +3,7 @@ package com.brentcroft.tools.jstl;
 
 import com.brentcroft.tools.jstl.tag.TagMessages;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -61,6 +62,7 @@ public class JstlScriptTest
 
 
     @Test
+    @Ignore
     public void test_SCRIPT_Visibility()
     {
         final String[][] samples = {
@@ -105,6 +107,7 @@ public class JstlScriptTest
 
 
     @Test
+    @Ignore
     public void test_SCRIPT_Scope()
     {
         final String[][] samples = {

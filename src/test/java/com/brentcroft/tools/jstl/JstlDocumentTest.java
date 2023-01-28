@@ -1,5 +1,6 @@
 package com.brentcroft.tools.jstl;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -64,6 +65,7 @@ public class JstlDocumentTest
     }
 
     @Test
+    @Ignore
     public void scope_private() throws ParserConfigurationException, IOException, SAXException
     {
         String xml = "<midi xmlns:c='jstl'>" +

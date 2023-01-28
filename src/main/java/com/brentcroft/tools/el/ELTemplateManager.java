@@ -13,6 +13,7 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
@@ -116,8 +117,10 @@ public class ELTemplateManager implements TextExpander
                     clazz );
     }
 
-    public void addResolver(ELResolver resolver) {
-        elContextFactory.addELResolver( resolver );
+    public void addResolvers(ELResolver... resolvers) {
+        Stream
+                .of( resolvers )
+                .forEachOrdered( elContextFactory::addELResolver );
     }
 
     private ExpressionFactory getExpressionFactory()

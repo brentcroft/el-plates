@@ -98,7 +98,7 @@ public class JstlIfTest
 
         for ( String emptyAttr : emptyAttrs )
         {
-            templateManager.expandText( emptyAttr, new MapBindings() );
+            templateManager.expandText( emptyAttr, new MapBindings().withEntry( "red", false ) );
         }
     }
 

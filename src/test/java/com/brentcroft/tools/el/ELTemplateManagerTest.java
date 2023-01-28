@@ -5,10 +5,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -357,24 +354,46 @@ public class ELTemplateManagerTest
         assertEquals( "yellow", el.eval( expression, bindings ) );
     }
 
-//    @Test
-//    public void test_ifThenElse()
-//    {
-//        MapBindings bindings = new MapBindings()
-//                .withEntry( "colors", new MapBindings()
-//                        .withEntry( "color1", "blue" )
-//                        .withEntry( "color2", "orange" )
-//                        .withEntry( "color3", "yellow" )
-//                        .withEntry( "color4", "obtuse" )
-//                );
-//        {
-//            String expression = "c:ifThenElse( () -> colors.color2 == 'orange', () -> c:return( true ), () -> c:return( false ) )";
-//            assertEquals( true, el.eval( expression, bindings ) );
-//        }
-//        {
-//            String expression = "c:ifThenElse( () -> colors.color2 != 'orange', () -> c:return( true ), () -> c:return( false ) )";
-//            assertEquals( false, el.eval( expression, bindings ) );
-//        }
-//    }
+    @Test
+    public void test_thread_local_resolver() {
+        Stack< Map<String,Object> > stack = new Stack<>();
 
+        ThreadLocal< Stack< Map<String,Object> > > scopeStack = ThreadLocal.withInitial( () -> stack );
+        ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver(scopeStack);
+        el.addResolvers( tlsELResolver );
+
+        MapBindings scope = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "color1", "blue" )
+                        .withEntry( "color2", "orange" )
+                        .withEntry( "color3", "yellow" )
+                        .withEntry( "color4", "obtuse" )
+                );
+
+        stack.push(scope);
+
+        String expression = "colors.entrySet().stream().filter( e -> e.getKey().equals( 'color3' ) ).findFirst().orElse(null).getValue()";
+
+        assertEquals( "yellow", el.eval( expression, new HashMap<>() ) );
+    }
+
+
+    @Test
+    public void test_static_resolver() {
+        MapBindings scope = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "color1", "blue" )
+                        .withEntry( "color2", "orange" )
+                        .withEntry( "color3", "yellow" )
+                        .withEntry( "color4", "obtuse" )
+                );
+
+        SimpleELResolver staticResolver = new SimpleELResolver( scope );
+
+        el.addResolvers( staticResolver );
+
+        String expression = "colors.entrySet().stream().filter( e -> e.getKey().equals( 'color3' ) ).findFirst().orElse(null).getValue()";
+
+        assertEquals( "yellow", el.eval( expression, new HashMap<>() ) );
+    }
 }
