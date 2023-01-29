@@ -22,6 +22,8 @@ public class SimpleELContextFactory implements ELContextFactory
 {
     private final Map< String, Method > mappedFunctions = new HashMap<>();
 
+    private EvaluationListener[] listeners;
+
     private CompositeELResolver customPrimaryResolvers;
     private CompositeELResolver customSecondaryResolvers;
 
@@ -33,6 +35,10 @@ public class SimpleELContextFactory implements ELContextFactory
     public void mapFunction( String prefix, String unprefixedName, Method staticMethod )
     {
         mappedFunctions.put( prefix + ":" + unprefixedName, staticMethod );
+    }
+
+    public void setListeners( EvaluationListener... listeners) {
+        this.listeners = listeners;
     }
 
     public void mapFunctions( Map< String, Method > functions )
@@ -56,7 +62,7 @@ public class SimpleELContextFactory implements ELContextFactory
 
     public ELContext getELContext( Map< ?, ? > rootObjects )
     {
-        return new SimpleELContext( this, rootObjects );
+        return new SimpleELContext( this, rootObjects, listeners );
     }
 
     public ELContext getELConfigContext()

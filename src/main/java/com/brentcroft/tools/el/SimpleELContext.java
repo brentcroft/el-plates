@@ -1,11 +1,9 @@
 package com.brentcroft.tools.el;
 
-import jakarta.el.ELContext;
-import jakarta.el.ELResolver;
-import jakarta.el.FunctionMapper;
-import jakarta.el.VariableMapper;
+import jakarta.el.*;
 import lombok.Getter;
 
+import java.util.List;
 import java.util.Map;
 
 class SimpleELContext extends ELContext
@@ -16,16 +14,18 @@ class SimpleELContext extends ELContext
     @Getter
     protected final VariableMapper variableMapper;
 
-    private final Map< ?, ? > rootObjects;
-
     protected ELResolver resolver;
 
-    public SimpleELContext( SimpleELContextFactory simpleELContextFactory, Map< ?, ? > rootObjects )
+    public SimpleELContext( SimpleELContextFactory simpleELContextFactory, Map< ?, ? > rootObjects, EvaluationListener... listeners )
     {
         this.functionMapper = simpleELContextFactory.newFunctionMapper();
         this.variableMapper = SimpleELContextFactory.newVariableMapper();
-        this.rootObjects = rootObjects;
         this.resolver = simpleELContextFactory.newResolver( rootObjects );
+        if (listeners != null) {
+            for (EvaluationListener el : listeners) {
+                addEvaluationListener( el );
+            }
+        }
     }
 
     @Override

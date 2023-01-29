@@ -129,6 +129,10 @@ public class ELTemplateManager implements TextExpander, Evaluator
                 .forEachOrdered( elContextFactory::addSecondaryELResolver );
     }
 
+    public void addListeners(EvaluationListener... listeners) {
+        elContextFactory.setListeners( listeners );
+    }
+
     private ExpressionFactory getExpressionFactory()
     {
         if ( expressionFactory != null )
