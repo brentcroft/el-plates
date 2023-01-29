@@ -15,6 +15,9 @@ public class ThreadLocalStackELResolver extends MapELResolver
 
     public ThreadLocalStackELResolver(ThreadLocal< Stack<Map<String,Object>> > scopeStack)
     {
+        if (scopeStack == null) {
+            throw new IllegalArgumentException("ThreadLocalStack must not be null");
+        }
         this.scopeStack = scopeStack;
     }
 
