@@ -60,6 +60,7 @@ public class ELFunctions
             em.mapFunction( "textToFile", ELFunctions.class.getMethod( "textToFile", String.class, String.class ) );
 
             em.mapFunction( "return", ELFunctions.class.getMethod("raiseReturnException", Object.class) );
+            em.mapFunction( "raise", ELFunctions.class.getMethod("raiseRuntimeException", Object.class) );
 
             em.mapFunction( "delay", ELFunctions.class.getMethod("delay", long.class ) );
 
@@ -72,6 +73,10 @@ public class ELFunctions
 
     public static void raiseReturnException(Object value) {
         throw new ReturnException( value );
+    }
+
+    public static void raiseRuntimeException(Object value) {
+        throw new RuntimeException(value.toString());
     }
 
     public static String username()

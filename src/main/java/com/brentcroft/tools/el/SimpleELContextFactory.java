@@ -106,6 +106,7 @@ public class SimpleELContextFactory implements ELContextFactory
         {
             resolver.add( customSecondaryResolvers );
         }
+        resolver.add( new ConditionalMethodsELResolver() );
         resolver.add( new StreamELResolver() );
         resolver.add( new StaticFieldELResolver() );
         resolver.add( new ArrayELResolver() );

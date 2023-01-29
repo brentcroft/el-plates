@@ -87,7 +87,8 @@ public class ThreadLocalStackELResolver extends MapELResolver
         {
             Map< String, Object > container = newContainer(root);
             Object[] lastResult = {null};
-            stepsStream(steps)
+            Evaluator
+                    .stepsStream(steps)
                     .map( step -> expander.expandText( step, container ) )
                     .forEachOrdered( step -> lastResult[0] = evaluator.eval( step, container ) );
             Object ret = lastResult[0];
@@ -114,15 +115,5 @@ public class ThreadLocalStackELResolver extends MapELResolver
             bindings.put( "$parent", ((Parented)root).getParent() );
         }
         return bindings;
-    }
-
-    static Stream<String> stepsStream( String value) {
-        String uncommented = Stream
-                .of(value.split( "\\s*[\\n\\r]+\\s*" ))
-                .filter( v -> !v.isEmpty() && !v.startsWith( "#" ) )
-                .map( String::trim )
-                .collect( Collectors.joining(" "));
-        return Stream
-                .of(uncommented.split( "\\s*[;]+\\s*" ));
     }
 }

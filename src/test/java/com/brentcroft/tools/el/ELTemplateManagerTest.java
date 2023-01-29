@@ -462,4 +462,39 @@ public class ELTemplateManagerTest
         }
     }
 
+
+    @Test
+    public void test_conditional_methods() {
+        Stack< Map<String,Object> > stack = new Stack<>();
+        stack.push(new HashMap<>());
+
+        ThreadLocal< Stack< Map<String,Object> > > scopeStack = ThreadLocal.withInitial( () -> stack );
+        ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver( el, el, scopeStack);
+        el.addPrimaryResolvers( tlsELResolver );
+
+
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver() );
+
+        MapBindings modelScope =  new MapBindings()
+                .withEntry( "a", new MapBindings()
+                    .withEntry( "b", new MapBindings()
+                        .withEntry( "counter", 1 )
+                        .withEntry( "$$countToTen", "$self.whileDo( () -> (counter < 10), () -> ($self.counter = counter + 1), 11 )" )
+                        .withEntry( "$$raiseException", "$self.tryExcept( () -> c:raise( 'Hello' ), (e) -> ($self.message = e.message) ); message" )
+                        .withEntry( "$$testIfThen", "$self.ifThen( () -> (counter == 10), () -> ($self.message = 'ifThenTrue') ); message" )
+                        .withEntry( "$$testIfThenElse", "$self.ifThenElse( " +
+                                "() -> (counter == 10), " +
+                                "() -> ($self.message = 'ifThenElseTrue'), " +
+                                "() -> ($self.message = 'ifThenElseFalse') ); message" )
+                    )
+                );
+
+        assertEquals( 1, el.eval( "a.b.counter", modelScope) );
+        assertEquals( 10L, el.eval( "a.b.countToTen(); a.b.counter", modelScope) );
+        assertEquals( "Hello", el.eval( "a.b.raiseException()", modelScope) );
+        assertEquals( "ifThenTrue", el.eval( "a.b.testIfThen()", modelScope) );
+        assertEquals( "ifThenElseTrue", el.eval( "a.b.testIfThenElse()", modelScope) );
+        el.eval("a.b.counter = a.b.counter + 1", modelScope);
+        assertEquals( "ifThenElseFalse", el.eval( "a.b.testIfThenElse()", modelScope) );
+    }
 }
