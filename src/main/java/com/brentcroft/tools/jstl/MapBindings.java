@@ -1,6 +1,7 @@
 package com.brentcroft.tools.jstl;
 
 
+import com.brentcroft.tools.el.Parented;
 import lombok.Getter;
 
 import javax.script.Bindings;
@@ -15,7 +16,7 @@ import java.util.Map;
  * @author ADobson
  */
 @Getter
-public class MapBindings extends LinkedHashMap< String, Object > implements Bindings
+public class MapBindings extends LinkedHashMap< String, Object > implements Bindings, Parented
 {
     private static final long serialVersionUID = 8422258558562588221L;
 

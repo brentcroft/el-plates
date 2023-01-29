@@ -82,14 +82,14 @@ public class ThreadLocalStackELResolver extends MapELResolver
                 ? (Map<String,Object>)params[0]
                 : new HashMap<>();
 
-        Map< String, Object > container = newContainer(root);
         scopeStack.get().push(scope);
         try
         {
+            Map< String, Object > container = newContainer(root);
             Object[] lastResult = {null};
             stepsStream(steps)
                     .map( step -> expander.expandText( step, container ) )
-                    .forEachOrdered( step -> lastResult[0] = evaluator.eval( steps, container ) );
+                    .forEachOrdered( step -> lastResult[0] = evaluator.eval( step, container ) );
             Object ret = lastResult[0];
             context.setPropertyResolved( base, methodName );
             return ret;
@@ -109,7 +109,10 @@ public class ThreadLocalStackELResolver extends MapELResolver
     {
         MapBindings bindings = new MapBindings(root);
         bindings.put( "$local", scopeStack.get().peek() );
-        bindings.put( "$this", root );
+        bindings.put( "$self", root );
+        if (root instanceof Parented) {
+            bindings.put( "$parent", ((Parented)root).getParent() );
+        }
         return bindings;
     }
 

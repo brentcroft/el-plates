@@ -396,10 +396,12 @@ public class ELTemplateManagerTest
         MapBindings scope = new MapBindings()
                 .withEntry( "colors", new MapBindings()
                         .withEntry( "x", 1 )
-                        .withEntry( "$$helloWorld", "c:println('hello world '.concat( x ))" ));
+                        .withEntry( "y", 2 )
+                        .withEntry( "$$helloWorld", "c:println('hello world '.concat($self.plus()));\n# comments \n $self.minus({'x':100,'y':37})" )
+                        .withEntry( "$$plus", "x + y" )
+                        .withEntry( "$$minus", "x - y" ));
 
-        el.eval( "colors.helloWorld()", scope );
-        el.eval( "colors.helloWorld({'x': 2})", scope );
+        assertEquals( 63L, el.eval( "colors.helloWorld()", scope ) );
     }
 
 
