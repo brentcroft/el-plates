@@ -26,23 +26,42 @@ public class ConditionalMethodsELResolver extends MapELResolver
         Object ret = null;
 
         switch (methodName.toString()) {
-
             case "ifThen":
+                if ( params.length < 2
+                        || !(params[0] instanceof LambdaExpression)
+                        || !(params[1] instanceof LambdaExpression ) ) {
+                    return null;
+                }
                 ret = ifThen( context, root, params );
                 context.setPropertyResolved( base, methodName );
                 return ret;
 
             case "ifThenElse":
+                if ( params.length < 3
+                        || !(params[0] instanceof LambdaExpression)
+                        || !(params[1] instanceof LambdaExpression )
+                        || !(params[2] instanceof LambdaExpression)) {
+                    return null;
+                }
                 ret = ifThenElse( context, root, params );
                 context.setPropertyResolved( base, methodName );
                 return ret;
 
             case "whileDo":
+                if ( params.length < 3
+                        || !(params[0] instanceof LambdaExpression)
+                        || !(params[1] instanceof LambdaExpression )
+                        || !(params[2] instanceof Number)) {
+                    return null;
+                }
                 ret = whileDo( context, root, params );
                 context.setPropertyResolved( base, methodName );
                 return ret;
 
             case "tryExcept":
+                if ( params.length < 2 || !(params[0] instanceof LambdaExpression) || !(params[1] instanceof LambdaExpression)) {
+                    return null;
+                }
                 ret = tryExcept( context, root, params );
                 context.setPropertyResolved( base, methodName );
                 return ret;
