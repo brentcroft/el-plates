@@ -49,7 +49,7 @@ import static java.lang.String.format;
  * @see <a href="http://juel.sourceforge.net/" >JUEL</a>
  */
 @Log
-public class ELTemplateManager implements TextExpander
+public class ELTemplateManager implements TextExpander, Evaluator
 {
     private ExpressionFactory expressionFactory = null;
 

@@ -359,7 +359,7 @@ public class ELTemplateManagerTest
         Stack< Map<String,Object> > stack = new Stack<>();
 
         ThreadLocal< Stack< Map<String,Object> > > scopeStack = ThreadLocal.withInitial( () -> stack );
-        ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver(scopeStack);
+        ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver(el,el, scopeStack);
         el.addPrimaryResolvers( tlsELResolver );
 
         MapBindings scope = new MapBindings()
@@ -382,6 +382,26 @@ public class ELTemplateManagerTest
             stack.pop();
         }
     }
+
+
+    @Test
+    public void test_thread_local_resolver_steps() {
+        Stack< Map<String,Object> > stack = new Stack<>();
+        stack.push( new HashMap<>() );
+
+        ThreadLocal< Stack< Map<String,Object> > > scopeStack = ThreadLocal.withInitial( () -> stack );
+        ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver(el,el, scopeStack);
+        el.addPrimaryResolvers( tlsELResolver );
+
+        MapBindings scope = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "x", 1 )
+                        .withEntry( "$$helloWorld", "c:println('hello world '.concat( x ))" ));
+
+        el.eval( "colors.helloWorld()", scope );
+        el.eval( "colors.helloWorld({'x': 2})", scope );
+    }
+
 
     @Test
     public void test_static_resolver() {
@@ -409,7 +429,7 @@ public class ELTemplateManagerTest
         Stack< Map<String,Object> > stack = new Stack<>();
 
         ThreadLocal< Stack< Map<String,Object> > > scopeStack = ThreadLocal.withInitial( () -> stack );
-        ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver(scopeStack);
+        ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver(el,el, scopeStack);
         el.addPrimaryResolvers( tlsELResolver );
 
         MapBindings stackScope = new MapBindings()
