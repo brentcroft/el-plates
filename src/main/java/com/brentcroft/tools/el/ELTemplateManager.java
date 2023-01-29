@@ -117,10 +117,16 @@ public class ELTemplateManager implements TextExpander
                     clazz );
     }
 
-    public void addResolvers(ELResolver... resolvers) {
+    public void addPrimaryResolvers(ELResolver... resolvers) {
         Stream
                 .of( resolvers )
-                .forEachOrdered( elContextFactory::addELResolver );
+                .forEachOrdered( elContextFactory::addPrimaryELResolver );
+    }
+
+    public void addSecondaryResolvers(ELResolver... resolvers) {
+        Stream
+                .of( resolvers )
+                .forEachOrdered( elContextFactory::addSecondaryELResolver );
     }
 
     private ExpressionFactory getExpressionFactory()

@@ -5,7 +5,7 @@
 
 	<groupId>com.brentcroft.tools</groupId>
 	<artifactId>el-plates</artifactId>
-	<version>01.02.06</version>
+	<version>01.02.07</version>
 
 	<name>Brentcroft EL/JSTL Templates</name>
 

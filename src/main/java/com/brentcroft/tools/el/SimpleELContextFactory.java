@@ -21,7 +21,9 @@ import static java.lang.String.format;
 public class SimpleELContextFactory implements ELContextFactory
 {
     private final Map< String, Method > mappedFunctions = new HashMap<>();
-    private final CompositeELResolver customResolvers = new CompositeELResolver();
+
+    private CompositeELResolver customPrimaryResolvers;
+    private CompositeELResolver customSecondaryResolvers;
 
     public void mapFunction( String unprefixedName, Method staticMethod )
     {
@@ -74,26 +76,45 @@ public class SimpleELContextFactory implements ELContextFactory
         };
     }
 
-    public void addELResolver(ELResolver cELResolver) {
-        customResolvers.add(cELResolver);
+    public void addPrimaryELResolver(ELResolver cELResolver) {
+        if ( customPrimaryResolvers == null) {
+            customPrimaryResolvers = new CompositeELResolver();
+        }
+        customPrimaryResolvers.add(cELResolver);
+    }
+
+    public void addSecondaryELResolver(ELResolver cELResolver) {
+        if ( customSecondaryResolvers == null)
+        {
+            customSecondaryResolvers = new CompositeELResolver();
+        }
+        customSecondaryResolvers.add(cELResolver);
     }
 
     ELResolver newResolver(Map< ?, ? > rootObjects) {
-        return new CompositeELResolver()
+        CompositeELResolver resolver = new CompositeELResolver();
+        // eg: thread local stack
+        if ( customPrimaryResolvers != null)
         {
-            {
-                add( new SimpleELResolver( rootObjects ) );
-                add( customResolvers );
+            resolver.add( customPrimaryResolvers );
+        }
 
-                add( new StreamELResolver() );
-                add( new StaticFieldELResolver() );
-                add( new ArrayELResolver() );
-                add( new ListELResolver() );
-                add( new BeanELResolver() );
-                add( new MapELResolver() );
-                add( new ResourceBundleELResolver() );
-            }
-        };
+        resolver.add( new SimpleELResolver( rootObjects ) );
+
+        // eg: static maps
+        if ( customSecondaryResolvers != null )
+        {
+            resolver.add( customSecondaryResolvers );
+        }
+        resolver.add( new StreamELResolver() );
+        resolver.add( new StaticFieldELResolver() );
+        resolver.add( new ArrayELResolver() );
+        resolver.add( new ListELResolver() );
+        resolver.add( new BeanELResolver() );
+        resolver.add( new MapELResolver() );
+        resolver.add( new ResourceBundleELResolver() );
+
+        return resolver;
     }
 
     class RootELContext extends SimpleELContext

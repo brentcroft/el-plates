@@ -360,7 +360,7 @@ public class ELTemplateManagerTest
 
         ThreadLocal< Stack< Map<String,Object> > > scopeStack = ThreadLocal.withInitial( () -> stack );
         ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver(scopeStack);
-        el.addResolvers( tlsELResolver );
+        el.addPrimaryResolvers( tlsELResolver );
 
         MapBindings scope = new MapBindings()
                 .withEntry( "colors", new MapBindings()
@@ -372,11 +372,16 @@ public class ELTemplateManagerTest
 
         stack.push(scope);
 
-        String expression = "colors.entrySet().stream().filter( e -> e.getKey().equals( 'color3' ) ).findFirst().orElse(null).getValue()";
-
-        assertEquals( "yellow", el.eval( expression, new HashMap<>() ) );
+        try
+        {
+            String expression = "colors.entrySet().stream().filter( e -> e.getKey().equals( 'color3' ) ).findFirst().orElse(null).getValue()";
+            assertEquals( "yellow", el.eval( expression, new HashMap<>() ) );
+        }
+        finally
+        {
+            stack.pop();
+        }
     }
-
 
     @Test
     public void test_static_resolver() {
@@ -390,10 +395,49 @@ public class ELTemplateManagerTest
 
         SimpleELResolver staticResolver = new SimpleELResolver( scope );
 
-        el.addResolvers( staticResolver );
+        el.addSecondaryResolvers( staticResolver );
 
         String expression = "colors.entrySet().stream().filter( e -> e.getKey().equals( 'color3' ) ).findFirst().orElse(null).getValue()";
 
         assertEquals( "yellow", el.eval( expression, new HashMap<>() ) );
     }
+
+
+    @Test
+    public void test_scope_precedence() {
+
+        Stack< Map<String,Object> > stack = new Stack<>();
+
+        ThreadLocal< Stack< Map<String,Object> > > scopeStack = ThreadLocal.withInitial( () -> stack );
+        ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver(scopeStack);
+        el.addPrimaryResolvers( tlsELResolver );
+
+        MapBindings stackScope = new MapBindings()
+                .withEntry( "color1", "blue" );
+        MapBindings modelScope = new MapBindings()
+                .withEntry( "color1", "yellow" )
+                .withEntry( "color2", "orange" );
+        MapBindings staticScope = new MapBindings()
+                .withEntry( "color1", "green" )
+                .withEntry( "color2", "blue" )
+                .withEntry( "color3", "red" );
+
+        SimpleELResolver staticResolver = new SimpleELResolver( staticScope );
+
+        el.addSecondaryResolvers( staticResolver );
+
+        stack.push(stackScope);
+
+        try
+        {
+            assertEquals( "blue", el.eval( "color1", modelScope) );
+            assertEquals( "orange", el.eval( "color2", modelScope) );
+            assertEquals( "red", el.eval( "color3", modelScope) );
+        }
+        finally
+        {
+            stack.pop();
+        }
+    }
+
 }
