@@ -95,13 +95,15 @@ public class ConditionalMethodsELResolver extends MapELResolver
         LambdaExpression onEx = (LambdaExpression)params[1];
         try {
             ops.invoke( context );
+        } catch (ReturnException e) {
+            throw e;
         } catch (Exception handled) {
-            if (handled.getCause() instanceof ReturnException) {
-                throw (ReturnException)handled.getCause();
-            }
             Exception cause = handled;
             while (cause.getCause() != null && cause instanceof ELException ) {
                 cause = (Exception)cause.getCause();
+            }
+            if (cause.getCause() instanceof ReturnException) {
+                throw (ReturnException)cause.getCause();
             }
 
             System.out.printf( "Handling exception: [%s]: %s%n", cause.getClass().getSimpleName(), cause.getMessage());
