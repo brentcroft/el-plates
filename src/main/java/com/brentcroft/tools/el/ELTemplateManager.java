@@ -270,15 +270,16 @@ public class ELTemplateManager implements TextExpander, Evaluator
         }
         catch (ELException e)
         {
-            if (e.getCause() instanceof ReturnException)
+            ELException cause = e;
+            while (e.getCause() != null && e.getCause() instanceof ELException)
             {
-                return ((ReturnException)e.getCause()).get();
+                cause = (ELException)cause.getCause();
             }
-            if (e.getCause() instanceof ELException)
+            if (cause.getCause() instanceof ReturnException)
             {
-                throw (ELException)e.getCause();
+                return ((ReturnException)cause.getCause()).get();
             }
-            throw e;
+            throw cause;
         }
     }
 

@@ -81,7 +81,7 @@ public class ConditionalMethodsELResolver extends MapELResolver
             ops.invoke( context );
         } catch (Exception handled) {
             if (handled.getCause() instanceof ReturnException) {
-                return root;
+                throw (ReturnException)handled.getCause();
             }
             Exception cause = handled;
             while (cause.getCause() != null && cause instanceof ELException ) {
@@ -89,16 +89,8 @@ public class ConditionalMethodsELResolver extends MapELResolver
             }
 
             System.out.printf( "Handling exception: [%s]: %s%n", cause.getClass().getSimpleName(), cause.getMessage());
-            try {
-                onEx.invoke( context, cause );
-            } catch (RuntimeException re) {
-                if (re.getCause() instanceof ReturnException) {
-                    return root;
-                } else if (re.getCause() != null && re.getClass().isAssignableFrom( re.getCause().getClass() )) {
-                    throw (RuntimeException)re.getCause();
-                }
-                throw re;
-            }
+
+            onEx.invoke( context, cause );
         }
         return root;
     }
@@ -114,23 +106,15 @@ public class ConditionalMethodsELResolver extends MapELResolver
         final LambdaExpression test = (LambdaExpression)params[0];
         final LambdaExpression ops = (LambdaExpression)params[1];
         int maxLoops = ((Number)params[2]).intValue();
-        try
-        {
-            while((Boolean)test.invoke( context ) && maxLoops >= 0) {
-                maxLoops--;
-                ops.invoke( context );
-            }
-            if (maxLoops < 0) {
-                throw new RetriesException(maxLoops, test.toString());
-            }
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof ReturnException) {
-                return ((ReturnException)e.getCause()).get();
-            } else if (e.getCause() != null && e.getClass().isAssignableFrom( e.getCause().getClass() )) {
-                throw (RuntimeException)e.getCause();
-            }
-            throw e;
+        int currentLoop = 0;
+        while((Boolean)test.invoke( context ) && maxLoops > currentLoop) {
+            currentLoop++;
+            ops.invoke( context );
         }
+        if (currentLoop >= maxLoops) {
+            throw new RetriesException(maxLoops, test.toString());
+        }
+
         return root;
     }
 
@@ -146,21 +130,13 @@ public class ConditionalMethodsELResolver extends MapELResolver
         final LambdaExpression test = (LambdaExpression)params[0];
         final LambdaExpression thenOps = (LambdaExpression)params[1];
         final LambdaExpression elseOps = (LambdaExpression)params[2];
-        try
-        {
-            if((Boolean)test.invoke( context )) {
-                thenOps.invoke( context );
-            } else {
-                elseOps.invoke( context );
-            }
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof ReturnException) {
-                return ((ReturnException)e.getCause()).get();
-            } else if (e.getCause() != null && e.getClass().isAssignableFrom( e.getCause().getClass() )) {
-                throw (RuntimeException)e.getCause();
-            }
-            throw e;
+
+        if((Boolean)test.invoke( context )) {
+            thenOps.invoke( context );
+        } else {
+            elseOps.invoke( context );
         }
+
         return root;
     }
 
@@ -173,19 +149,11 @@ public class ConditionalMethodsELResolver extends MapELResolver
         }
         final LambdaExpression test = (LambdaExpression)params[0];
         final LambdaExpression thenOps = (LambdaExpression)params[1];
-        try
-        {
-            if((Boolean)test.invoke( context )) {
-                thenOps.invoke( context );
-            }
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof ReturnException) {
-                return ((ReturnException)e.getCause()).get();
-            } else if (e.getCause() != null && e.getClass().isAssignableFrom( e.getCause().getClass() )) {
-                throw (RuntimeException)e.getCause();
-            }
-            throw e;
+
+        if((Boolean)test.invoke( context )) {
+            thenOps.invoke( context );
         }
+
         return root;
     }
 }
