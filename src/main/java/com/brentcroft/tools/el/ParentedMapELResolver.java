@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import java.util.Map;
 
 @AllArgsConstructor
-public class SimpleELResolver extends MapELResolver
+public class ParentedMapELResolver extends MapELResolver
 {
     private final Map< ?, ? > rootObjects;
 
@@ -25,6 +25,10 @@ public class SimpleELResolver extends MapELResolver
             context.setPropertyResolved(base, property);
             Map<?, ?> map = (Map<?, ?>) base;
             return map.get(property);
+        }
+
+        if (base instanceof Parented && base != rootObjects) {
+            return getValue( context, ((Parented)base).getParent(), property );
         }
 
         return null;

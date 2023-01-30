@@ -3,7 +3,6 @@ package com.brentcroft.tools.el;
 import com.brentcroft.tools.jstl.MapBindings;
 import jakarta.el.ELContext;
 import jakarta.el.EvaluationListener;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
@@ -418,7 +417,7 @@ public class ELTemplateManagerTest
                         .withEntry( "color4", "obtuse" )
                 );
 
-        SimpleELResolver staticResolver = new SimpleELResolver( scope );
+        ParentedMapELResolver staticResolver = new ParentedMapELResolver( scope );
 
         el.addSecondaryResolvers( staticResolver );
 
@@ -441,13 +440,18 @@ public class ELTemplateManagerTest
                 .withEntry( "color1", "blue" );
         MapBindings modelScope = new MapBindings()
                 .withEntry( "color1", "yellow" )
-                .withEntry( "color2", "orange" );
+                .withEntry( "color2", "orange" )
+                .withEntry( "color9", "vermillion" )
+                .withEntry( "level2", new MapBindings()
+                        .withEntry( "color1", "puce" )
+                        .withEntry( "color2", "purple" )
+                );
         MapBindings staticScope = new MapBindings()
                 .withEntry( "color1", "green" )
                 .withEntry( "color2", "blue" )
                 .withEntry( "color3", "red" );
 
-        SimpleELResolver staticResolver = new SimpleELResolver( staticScope );
+        ParentedMapELResolver staticResolver = new ParentedMapELResolver( staticScope );
 
         el.addSecondaryResolvers( staticResolver );
 
@@ -458,6 +462,10 @@ public class ELTemplateManagerTest
             assertEquals( "blue", el.eval( "color1", modelScope) );
             assertEquals( "orange", el.eval( "color2", modelScope) );
             assertEquals( "red", el.eval( "color3", modelScope) );
+
+            assertEquals( "puce", el.eval( "level2.color1", modelScope) );
+            assertEquals( "purple", el.eval( "level2.color2", modelScope) );
+            assertEquals( "vermillion", el.eval( "level2.color9", modelScope) );
         }
         finally
         {

@@ -105,7 +105,7 @@ public class SimpleELContextFactory implements ELContextFactory
             resolver.add( customPrimaryResolvers );
         }
 
-        resolver.add( new SimpleELResolver( rootObjects ) );
+        resolver.add( new ParentedMapELResolver( rootObjects ) );
 
         // eg: static maps
         if ( customSecondaryResolvers != null )
