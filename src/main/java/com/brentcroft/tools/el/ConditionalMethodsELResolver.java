@@ -6,9 +6,25 @@ import jakarta.el.LambdaExpression;
 import jakarta.el.MapELResolver;
 
 import java.util.Map;
+import java.util.function.BiFunction;
 
 public class ConditionalMethodsELResolver extends MapELResolver
 {
+    BiFunction<ELContext,LambdaExpression,Boolean> returnHandlingTest = ( ELContext context, LambdaExpression test) -> {
+        try {
+            return (Boolean)test.invoke( context );
+        } catch (ReturnException e) {
+            return Boolean.parseBoolean( e.get().toString() );
+        } catch (ELException e) {
+            ELException cause = e;
+            while (cause.getCause() != null && cause.getCause() instanceof ELException ) {
+                cause = (ELException)cause.getCause();
+            }
+            throw cause;
+        }
+    };
+
+
     @Override
     public Object getValue( ELContext context, Object base, Object property )
     {
@@ -107,7 +123,8 @@ public class ConditionalMethodsELResolver extends MapELResolver
         final LambdaExpression ops = (LambdaExpression)params[1];
         int maxLoops = ((Number)params[2]).intValue();
         int currentLoop = 0;
-        while((Boolean)test.invoke( context ) && maxLoops > currentLoop) {
+
+        while(returnHandlingTest.apply( context, test ) && maxLoops > currentLoop) {
             currentLoop++;
             ops.invoke( context );
         }
@@ -131,7 +148,7 @@ public class ConditionalMethodsELResolver extends MapELResolver
         final LambdaExpression thenOps = (LambdaExpression)params[1];
         final LambdaExpression elseOps = (LambdaExpression)params[2];
 
-        if((Boolean)test.invoke( context )) {
+        if(returnHandlingTest.apply( context, test )) {
             thenOps.invoke( context );
         } else {
             elseOps.invoke( context );
@@ -150,7 +167,7 @@ public class ConditionalMethodsELResolver extends MapELResolver
         final LambdaExpression test = (LambdaExpression)params[0];
         final LambdaExpression thenOps = (LambdaExpression)params[1];
 
-        if((Boolean)test.invoke( context )) {
+        if(returnHandlingTest.apply( context, test )) {
             thenOps.invoke( context );
         }
 
