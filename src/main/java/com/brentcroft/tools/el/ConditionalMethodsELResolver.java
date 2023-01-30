@@ -1,16 +1,23 @@
 package com.brentcroft.tools.el;
 
+import com.brentcroft.tools.jstl.MapBindings;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
 import jakarta.el.LambdaExpression;
 import jakarta.el.MapELResolver;
+import lombok.AllArgsConstructor;
 
 import java.util.Map;
+import java.util.Stack;
 import java.util.function.BiFunction;
 
+@AllArgsConstructor
 public class ConditionalMethodsELResolver extends MapELResolver
 {
-    BiFunction<ELContext,LambdaExpression,Boolean> returnHandlingTest = ( ELContext context, LambdaExpression test) -> {
+    private ELContextFactory contextFactory;
+    private final ThreadLocal< Stack<Map<String,Object>> > scopeStack;
+
+    private static BiFunction<ELContext,LambdaExpression,Boolean> returnHandlingTest = ( ELContext context, LambdaExpression test) -> {
         try {
             return (Boolean)test.invoke( context );
         } catch (ReturnException e) {
@@ -38,7 +45,9 @@ public class ConditionalMethodsELResolver extends MapELResolver
         if (!(base instanceof Map)) {
             return null;
         }
-        Map<String, Object> root = (Map<String,Object>)base;
+        Map<String, Object> root = newContainer((Map<String,Object>)base);
+
+        ELContext localContext = contextFactory.getELContext( root );
 
         switch (methodName.toString()) {
             case "ifThen":
@@ -47,7 +56,7 @@ public class ConditionalMethodsELResolver extends MapELResolver
                         || !(params[1] instanceof LambdaExpression ) ) {
                     return null;
                 }
-                ifThen( context, root, params );
+                ifThen( localContext, params );
                 context.setPropertyResolved( base, methodName );
                 return base;
 
@@ -58,7 +67,7 @@ public class ConditionalMethodsELResolver extends MapELResolver
                         || !(params[2] instanceof LambdaExpression)) {
                     return null;
                 }
-                ifThenElse( context, root, params );
+                ifThenElse( localContext, params );
                 context.setPropertyResolved( base, methodName );
                 return base;
 
@@ -69,7 +78,7 @@ public class ConditionalMethodsELResolver extends MapELResolver
                         || !(params[2] instanceof Number)) {
                     return null;
                 }
-                whileDo( context, root, params );
+                whileDo( localContext, params );
                 context.setPropertyResolved( base, methodName );
                 return base;
 
@@ -77,15 +86,27 @@ public class ConditionalMethodsELResolver extends MapELResolver
                 if ( params.length < 2 || !(params[0] instanceof LambdaExpression) || !(params[1] instanceof LambdaExpression)) {
                     return null;
                 }
-                tryExcept( context, root, params );
+                tryExcept( localContext, params );
                 context.setPropertyResolved( base, methodName );
                 return base;
         }
         return null;
     }
 
+    public Map< String, Object > newContainer(Map< String, Object > owner)
+    {
+        MapBindings bindings = new MapBindings( owner );
+        bindings.put( "$local", scopeStack.get().peek() );
+        bindings.put( "$self", owner );
+        if (owner instanceof Parented)
+        {
+            bindings.put( "$parent", ((Parented)owner).getParent() );
+        }
+        return bindings;
+    }
 
-    private void tryExcept( ELContext context, Map< String, Object> root, Object[] params )
+
+    private void tryExcept( ELContext context, Object[] params )
     {
         if ( params.length < 2 || !(params[0] instanceof LambdaExpression) || !(params[1] instanceof LambdaExpression)) {
             throw new IllegalArgumentException("Must have arguments: tryExcept( LambdaExpression, LambdaExpression )");
@@ -109,7 +130,7 @@ public class ConditionalMethodsELResolver extends MapELResolver
         }
     }
 
-    private void whileDo( ELContext context, Map< String, Object> root, Object[] params )
+    private void whileDo( ELContext context, Object[] params )
     {
         if ( params.length < 3
                 || !(params[0] instanceof LambdaExpression)
@@ -132,7 +153,7 @@ public class ConditionalMethodsELResolver extends MapELResolver
     }
 
 
-    private void ifThenElse( ELContext context, Map< String, Object> root, Object[] params )
+    private void ifThenElse( ELContext context, Object[] params )
     {
         if ( params.length < 3
                 || !(params[0] instanceof LambdaExpression)
@@ -151,7 +172,7 @@ public class ConditionalMethodsELResolver extends MapELResolver
         }
     }
 
-    private void ifThen( ELContext context, Map< String, Object> root, Object[] params )
+    private void ifThen( ELContext context, Object[] params )
     {
         if ( params.length < 2
                 || !(params[0] instanceof LambdaExpression)

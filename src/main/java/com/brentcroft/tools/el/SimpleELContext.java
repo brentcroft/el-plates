@@ -3,7 +3,6 @@ package com.brentcroft.tools.el;
 import jakarta.el.*;
 import lombok.Getter;
 
-import java.util.List;
 import java.util.Map;
 
 class SimpleELContext extends ELContext

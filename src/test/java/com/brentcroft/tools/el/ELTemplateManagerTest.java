@@ -488,7 +488,7 @@ public class ELTemplateManagerTest
         el.addPrimaryResolvers( tlsELResolver );
 
 
-        el.addSecondaryResolvers( new ConditionalMethodsELResolver() );
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver(el.getELContextFactory(), scopeStack) );
 
         MapBindings modelScope =  new MapBindings()
                 .withEntry( "a", new MapBindings()
@@ -524,8 +524,7 @@ public class ELTemplateManagerTest
         ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver( el, el, scopeStack);
         el.addPrimaryResolvers( tlsELResolver );
 
-
-        el.addSecondaryResolvers( new ConditionalMethodsELResolver() );
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver(el.getELContextFactory(), scopeStack) );
         
         el.addListeners( new EvaluationListener()
         {

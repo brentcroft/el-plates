@@ -3,22 +3,19 @@ package com.brentcroft.tools.el;
 import com.brentcroft.tools.jstl.MapBindings;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
-import jakarta.el.ELResolver;
 import jakarta.el.MapELResolver;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
 public class ThreadLocalStackELResolver extends MapELResolver
 {
     private final ThreadLocal< Stack<Map<String,Object>> > scopeStack;
-    private Evaluator evaluator;
-    private TextExpander expander;
+    private final Evaluator evaluator;
+    private final TextExpander expander;
 
     public ThreadLocalStackELResolver(TextExpander expander, Evaluator evaluator, ThreadLocal< Stack<Map<String,Object>> > scopeStack)
     {
