@@ -2,6 +2,7 @@ package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.jstl.MapBindings;
 import jakarta.el.ELContext;
+import jakarta.el.ELException;
 import jakarta.el.ELResolver;
 import jakarta.el.MapELResolver;
 
@@ -94,12 +95,21 @@ public class ThreadLocalStackELResolver extends MapELResolver
             Object ret = lastResult[0];
             context.setPropertyResolved( base, methodName );
             return ret;
+
+        } catch (ReturnException e) {
+            context.setPropertyResolved( base, methodName );
+            return e.get();
+
         } catch (RuntimeException e) {
-            if (e.getCause() instanceof ReturnException) {
-                return ((ReturnException)e.getCause()).get();
-            } else if (e.getCause() != null && e.getClass().isAssignableFrom( e.getCause().getClass() )) {
-                throw (RuntimeException)e.getCause();
+            RuntimeException cause = e;
+            while (cause.getCause() != null && cause instanceof ELException ) {
+                cause = (ELException)cause.getCause();
             }
+            if (cause.getCause() instanceof ReturnException) {
+                context.setPropertyResolved( base, methodName );
+                return ((ReturnException)cause.getCause()).get();
+            }
+
             throw e;
         } finally {
             scopeStack.get().pop();
