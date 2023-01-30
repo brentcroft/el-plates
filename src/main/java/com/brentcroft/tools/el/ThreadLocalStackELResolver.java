@@ -102,7 +102,7 @@ public class ThreadLocalStackELResolver extends MapELResolver
 
         } catch (RuntimeException e) {
             RuntimeException cause = e;
-            while (cause.getCause() != null && cause instanceof ELException ) {
+            while (cause.getCause() != null && cause.getCause() instanceof ELException ) {
                 cause = (ELException)cause.getCause();
             }
             if (cause.getCause() instanceof ReturnException) {

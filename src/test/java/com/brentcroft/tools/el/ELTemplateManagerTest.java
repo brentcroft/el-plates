@@ -323,21 +323,6 @@ public class ELTemplateManagerTest
         assertEquals( "red", el.expandText( "${ colors.color4 }", bindings ) );
     }
 
-    @Test
-    public void test_return()
-    {
-        MapBindings bindings = new MapBindings()
-                .withEntry( "colors", new MapBindings()
-                        .withEntry( "color1", "blue" )
-                        .withEntry( "color2", "orange" )
-                        .withEntry( "color3", "yellow" )
-                        .withEntry( "color4", "obtuse" )
-                );
-
-        String expression = "colors.last = 23; c:return( 29 ); colors.last = 25";
-
-        assertEquals( 29L, el.eval( expression, bindings ) );
-    }
 
 
     @Test
@@ -384,6 +369,25 @@ public class ELTemplateManagerTest
             stack.pop();
         }
     }
+
+    @Test
+    public void test_return()
+    {
+        Stack< Map<String,Object> > stack = new Stack<>();
+        stack.push( new HashMap<>() );
+
+        ThreadLocal< Stack< Map<String,Object> > > scopeStack = ThreadLocal.withInitial( () -> stack );
+        ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver(el,el, scopeStack);
+        el.addPrimaryResolvers( tlsELResolver );
+
+        MapBindings bindings = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry("$$testReturn", "c:return( 29 ); 31")
+                );
+
+        assertEquals( 29L, el.eval( "colors.testReturn()", bindings ) );
+    }
+
 
 
     @Test
