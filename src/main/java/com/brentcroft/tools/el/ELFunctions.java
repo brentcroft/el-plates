@@ -53,6 +53,7 @@ public class ELFunctions
 
             em.mapFunction( "toStringSet", StringUpcaster.class.getMethod( "toStringSet", String.class ) );
             em.mapFunction( "sort", ELFunctions.class.getMethod( "sort", Collection.class, Comparator.class ) );
+            em.mapFunction( "charList", ELFunctions.class.getMethod( "charList", Object.class ) );
 
             em.mapFunction( "println", ELFunctions.class.getMethod( "println", Object.class ) );
             em.mapFunction( "camelCase", ELFunctions.class.getMethod( "camelCase", String.class ) );
@@ -109,6 +110,17 @@ public class ELFunctions
         List<T> list =  new ArrayList<>( collection );
         list.sort( comparator );
         return list;
+    }
+
+    public static List<String> charList(Object value) {
+        return Optional
+                .ofNullable( value )
+                .map( Object::toString )
+                .map( s -> s
+                        .chars()
+                        .mapToObj( c -> String.format( "%s", (char)c ) )
+                        .collect( Collectors.toList()) )
+                .orElseGet( Collections::emptyList );
     }
 
     public static String format(String pattern, List<Object> items) {
