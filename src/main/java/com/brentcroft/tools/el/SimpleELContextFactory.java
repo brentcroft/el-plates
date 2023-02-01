@@ -98,7 +98,11 @@ public class SimpleELContextFactory implements ELContextFactory
     }
 
     ELResolver newResolver(Map< ?, ? > rootObjects) {
-        CompositeELResolver resolver = new CompositeELResolver();
+        CompositeELResolver resolver = new CompositeELResolver() {
+            public void setValue(ELContext context, Object base, Object property, Object value) {
+                super.setValue( context, base == null ? rootObjects : base, property, value );
+            }
+        };
         // eg: thread local stack
         if ( customPrimaryResolvers != null)
         {
