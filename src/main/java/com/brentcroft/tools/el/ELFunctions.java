@@ -1,12 +1,10 @@
 package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.jstl.StringUpcaster;
+import org.xml.sax.InputSource;
 
 import javax.swing.*;
-import java.io.Console;
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -58,12 +56,16 @@ public class ELFunctions
             em.mapFunction( "println", ELFunctions.class.getMethod( "println", Object.class ) );
             em.mapFunction( "camelCase", ELFunctions.class.getMethod( "camelCase", String.class ) );
             em.mapFunction( "pause", ELFunctions.class.getMethod( "pause", String.class ) );
+
             em.mapFunction( "textToFile", ELFunctions.class.getMethod( "textToFile", String.class, String.class ) );
+            em.mapFunction( "fileToText", ELFunctions.class.getMethod( "fileToText", String.class ) );
 
             em.mapFunction( "return", ELFunctions.class.getMethod("raiseReturnException", Object.class) );
             em.mapFunction( "raise", ELFunctions.class.getMethod("raiseRuntimeException", Object.class) );
 
             em.mapFunction( "delay", ELFunctions.class.getMethod("delay", long.class ) );
+
+            em.mapFunction( "inputSource", ELFunctions.class.getMethod("inputSource", Object.class ) );
 
         }
         catch ( Exception e )
@@ -255,5 +257,16 @@ public class ELFunctions
     {
         Files.write( Paths.get(filename), text.getBytes(), StandardOpenOption.CREATE );
         return "OK";
+    }
+
+    public static String fileToText( String filename ) throws IOException
+    {
+            return String
+                    .join( "\n", Files
+                            .readAllLines( Paths.get( filename ) ) );
+    }
+
+    public static InputSource inputSource(String value) {
+        return new InputSource( new StringReader(value));
     }
 }
