@@ -25,15 +25,6 @@ public class ELFunctions
             em.mapFunction( "parseBytes", ELFunctions.class.getMethod( "bytesAsString", byte[].class, String.class ) );
             em.mapFunction( "fileExists", ELFunctions.class.getMethod( "fileExists", String.class ) );
 
-
-            em.mapFunction( "int", Integer.class.getMethod( "valueOf", String.class ) );
-            em.mapFunction( "double", Double.class.getMethod( "valueOf", String.class ) );
-            em.mapFunction( "pow", Math.class.getMethod( "pow", double.class, double.class ) );
-
-            // capture as float
-            em.mapFunction( "float", ELFunctions.class.getMethod( "boxFloat", Float.class ) );
-            em.mapFunction( "random", ELFunctions.class.getMethod( "random" ) );
-
             em.mapFunction( "username", ELFunctions.class.getMethod( "username" ) );
             em.mapFunction( "userhome", ELFunctions.class.getMethod( "userhome" ) );
 
@@ -41,22 +32,22 @@ public class ELFunctions
             em.mapFunction( "radix", Long.class.getMethod( "toString", long.class, int.class ) );
 
             em.mapFunction( "currentTimeMillis", System.class.getMethod( "currentTimeMillis" ) );
-
             em.mapFunction( "getTime", ELFunctions.class.getMethod( "getTime", String.class ) );
             em.mapFunction( "now", ELFunctions.class.getMethod( "now" ) );
 
-
             em.mapFunction( "console", ELFunctions.class.getMethod( "console", String.class, String.class ) );
             em.mapFunction( "consolePassword", ELFunctions.class.getMethod( "consolePassword", String.class, char[].class ) );
-            em.mapFunction( "consoleFormat", ELFunctions.class.getMethod( "consoleFormat", String.class, Object[].class ) );
+            em.mapFunction( "consoleFormat", ELFunctions.class.getMethod( "consoleFormat", String.class, List.class ) );
 
             em.mapFunction( "toStringSet", StringUpcaster.class.getMethod( "toStringSet", String.class ) );
             em.mapFunction( "sort", ELFunctions.class.getMethod( "sort", Collection.class, Comparator.class ) );
             em.mapFunction( "charList", ELFunctions.class.getMethod( "charList", Object.class ) );
 
             em.mapFunction( "println", ELFunctions.class.getMethod( "println", Object.class ) );
+
             em.mapFunction( "camelCase", ELFunctions.class.getMethod( "camelCase", String.class ) );
             em.mapFunction( "pause", ELFunctions.class.getMethod( "pause", String.class ) );
+            em.mapFunction( "delay", ELFunctions.class.getMethod("delay", long.class ) );
 
             em.mapFunction( "textToFile", ELFunctions.class.getMethod( "textToFile", String.class, String.class ) );
             em.mapFunction( "fileToText", ELFunctions.class.getMethod( "fileToText", String.class ) );
@@ -64,10 +55,7 @@ public class ELFunctions
             em.mapFunction( "return", ELFunctions.class.getMethod("raiseReturnException", Object.class) );
             em.mapFunction( "raise", ELFunctions.class.getMethod("raiseRuntimeException", Object.class) );
 
-            em.mapFunction( "delay", ELFunctions.class.getMethod("delay", long.class ) );
-
             em.mapFunction( "inputSource", ELFunctions.class.getMethod("inputSource", String.class ) );
-
         }
         catch ( Exception e )
         {
@@ -127,22 +115,7 @@ public class ELFunctions
     }
 
     public static String format(String pattern, List<Object> items) {
-        return String.format( pattern, new ArrayList<>( items ).toArray() );
-    }
-
-    public static Float boxFloat( Float f )
-    {
-        return f;
-    }
-
-    public static Double asDouble( Double f )
-    {
-        return f;
-    }
-
-    public static Double pow( Double base, Double exponent )
-    {
-        return Math.pow( base, exponent );
+        return String.format( pattern, items.toArray() );
     }
 
     public static boolean fileExists( String filename )
@@ -150,56 +123,39 @@ public class ELFunctions
         return new File( filename ).exists();
     }
 
-    public static String bytesAsString( byte[] bytes )
-    {
-        return new String( bytes );
-    }
-
     public static String bytesAsString( byte[] bytes, String charset ) throws UnsupportedEncodingException
     {
         return new String( bytes, charset );
     }
 
-
-    public static Random random()
-    {
-        return new Random();
-    }
-
     public static String console( String prompt, String defaultValue )
     {
         Console console = System.console();
-
         if ( console == null )
         {
             return defaultValue;
         }
-
         return console.readLine( prompt );
     }
 
     public static char[] consolePassword( String prompt, char[] defaultValue )
     {
         Console console = System.console();
-
         if ( console == null )
         {
             return defaultValue;
         }
-
         return console.readPassword( prompt );
     }
 
-    public static void consoleFormat( String format, Object... args )
+    public static void consoleFormat( String format, List<Object> items )
     {
         Console console = System.console();
-
         if ( console == null )
         {
             return;
         }
-
-        console.format( format, args );
+        console.format( format, items.toArray() );
     }
 
     public static LocalDateTime getTime( String pattern )
