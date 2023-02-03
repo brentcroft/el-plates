@@ -1,6 +1,7 @@
 package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.jstl.StringUpcaster;
+import jakarta.el.ELException;
 import org.xml.sax.InputSource;
 
 import javax.swing.*;
@@ -65,7 +66,7 @@ public class ELFunctions
 
             em.mapFunction( "delay", ELFunctions.class.getMethod("delay", long.class ) );
 
-            em.mapFunction( "inputSource", ELFunctions.class.getMethod("inputSource", Object.class ) );
+            em.mapFunction( "inputSource", ELFunctions.class.getMethod("inputSource", String.class ) );
 
         }
         catch ( Exception e )
@@ -79,7 +80,7 @@ public class ELFunctions
     }
 
     public static void raiseRuntimeException(Object value) {
-        throw new RuntimeException(value.toString());
+        throw new ELException(value.toString());
     }
 
     public static String username()
