@@ -1,7 +1,6 @@
 package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.jstl.StringUpcaster;
-import jakarta.el.ELException;
 import org.xml.sax.InputSource;
 
 import javax.swing.*;
@@ -10,13 +9,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ELFunctions
 {
-    public static void install( StaticMethodMapper em) {
+    public static void install( StaticMethodMapper em )
+    {
         try
         {
             em.mapFunction( "format", ELFunctions.class.getMethod( "format", String.class, List.class ) );
@@ -34,6 +35,9 @@ public class ELFunctions
             em.mapFunction( "currentTimeMillis", System.class.getMethod( "currentTimeMillis" ) );
             em.mapFunction( "getTime", ELFunctions.class.getMethod( "getTime", String.class ) );
             em.mapFunction( "now", ELFunctions.class.getMethod( "now" ) );
+            em.mapFunction( "millisBetween", ELFunctions.class.getMethod( "millisBetween", LocalDateTime.class, LocalDateTime.class ) );
+            em.mapFunction( "isWorkingDay", ELFunctions.class.getMethod( "isWorkingDay", LocalDateTime.class ) );
+            em.mapFunction( "dateRange", ELFunctions.class.getMethod( "dateRange", LocalDateTime.class, LocalDateTime.class ) );
 
             em.mapFunction( "console", ELFunctions.class.getMethod( "console", String.class, String.class ) );
             em.mapFunction( "consolePassword", ELFunctions.class.getMethod( "consolePassword", String.class, char[].class ) );
@@ -47,15 +51,15 @@ public class ELFunctions
 
             em.mapFunction( "camelCase", ELFunctions.class.getMethod( "camelCase", String.class ) );
             em.mapFunction( "pause", ELFunctions.class.getMethod( "pause", String.class ) );
-            em.mapFunction( "delay", ELFunctions.class.getMethod("delay", long.class ) );
+            em.mapFunction( "delay", ELFunctions.class.getMethod( "delay", long.class ) );
 
             em.mapFunction( "textToFile", ELFunctions.class.getMethod( "textToFile", String.class, String.class ) );
             em.mapFunction( "fileToText", ELFunctions.class.getMethod( "fileToText", String.class ) );
 
-            em.mapFunction( "return", ELFunctions.class.getMethod("raiseReturnException", Object.class) );
-            em.mapFunction( "raise", ELFunctions.class.getMethod("raiseRuntimeException", Object.class) );
+            em.mapFunction( "return", ELFunctions.class.getMethod( "raiseReturnException", Object.class ) );
+            em.mapFunction( "raise", ELFunctions.class.getMethod( "raiseRuntimeException", Object.class ) );
 
-            em.mapFunction( "inputSource", ELFunctions.class.getMethod("inputSource", String.class ) );
+            em.mapFunction( "inputSource", ELFunctions.class.getMethod( "inputSource", String.class ) );
         }
         catch ( Exception e )
         {
@@ -63,12 +67,14 @@ public class ELFunctions
         }
     }
 
-    public static void raiseReturnException(Object value) {
+    public static void raiseReturnException( Object value )
+    {
         throw new ReturnException( value );
     }
 
-    public static void raiseRuntimeException(Object value) {
-        throw new UserException(value.toString());
+    public static void raiseRuntimeException( Object value )
+    {
+        throw new UserException( value.toString() );
     }
 
     public static String username()
@@ -96,25 +102,27 @@ public class ELFunctions
                 .orElseThrow( () -> new RuntimeException( "source cannot be null" ) );
     }
 
-    public static <T> List<T> sort( Collection<T> collection, Comparator<T> comparator )
+    public static < T > List< T > sort( Collection< T > collection, Comparator< T > comparator )
     {
-        List<T> list =  new ArrayList<>( collection );
+        List< T > list = new ArrayList<>( collection );
         list.sort( comparator );
         return list;
     }
 
-    public static List<String> charList(Object value) {
+    public static List< String > charList( Object value )
+    {
         return Optional
                 .ofNullable( value )
                 .map( Object::toString )
                 .map( s -> s
                         .chars()
-                        .mapToObj( c -> String.format( "%s", (char)c ) )
-                        .collect( Collectors.toList()) )
+                        .mapToObj( c -> String.format( "%s", ( char ) c ) )
+                        .collect( Collectors.toList() ) )
                 .orElseGet( Collections::emptyList );
     }
 
-    public static String format(String pattern, List<Object> items) {
+    public static String format( String pattern, List< Object > items )
+    {
         return String.format( pattern, items.toArray() );
     }
 
@@ -148,7 +156,7 @@ public class ELFunctions
         return console.readPassword( prompt );
     }
 
-    public static void consoleFormat( String format, List<Object> items )
+    public static void consoleFormat( String format, List< Object > items )
     {
         Console console = System.console();
         if ( console == null )
@@ -168,16 +176,45 @@ public class ELFunctions
         return LocalDateTime.now();
     }
 
+    public static long millisBetween( LocalDateTime earlier, LocalDateTime later )
+    {
+        return earlier.until( later, ChronoUnit.MILLIS );
+    }
+
+    public static boolean isWorkingDay( LocalDateTime candidate )
+    {
+        switch ( candidate.getDayOfWeek() )
+        {
+            case SATURDAY:
+            case SUNDAY:
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    public static List< LocalDateTime > dateRange( LocalDateTime from, LocalDateTime to )
+    {
+        List< LocalDateTime > dates = new ArrayList<>();
+        while ( ! from.isAfter( to ) )
+        {
+            dates.add( from );
+            from = from.plusDays( 1 );
+        }
+        return dates;
+    }
+
     public static String println( Object o )
     {
         System.out.println( o );
         return "OK";
     }
 
-    public static String delay(long millis) {
+    public static String delay( long millis )
+    {
         try
         {
-            Thread.sleep(millis);
+            Thread.sleep( millis );
         }
         catch ( InterruptedException e )
         {
@@ -186,7 +223,8 @@ public class ELFunctions
         return "OK";
     }
 
-    public static String pause(String message) {
+    public static String pause( String message )
+    {
         JOptionPane
                 .showMessageDialog(
                         null,
@@ -196,34 +234,37 @@ public class ELFunctions
         return "OK";
     }
 
-    public static String camelCase(String text) {
-        boolean[] isFirst = {true};
+    public static String camelCase( String text )
+    {
+        boolean[] isFirst = { true };
         return Stream
-                .of( text.split("\\s+"))
+                .of( text.split( "\\s+" ) )
                 .map( t -> {
-                    if (isFirst[0]) {
-                        isFirst[0] = false;
+                    if ( isFirst[ 0 ] )
+                    {
+                        isFirst[ 0 ] = false;
                         return t.substring( 0, 1 ).toLowerCase( Locale.ROOT ) + t.substring( 1 );
                     }
                     return t.substring( 0, 1 ).toUpperCase( Locale.ROOT ) + t.substring( 1 );
                 } )
-                .collect( Collectors.joining());
+                .collect( Collectors.joining() );
     }
 
-    public static String textToFile(String text, String filename) throws IOException
+    public static String textToFile( String text, String filename ) throws IOException
     {
-        Files.write( Paths.get(filename), text.getBytes(), StandardOpenOption.CREATE );
+        Files.write( Paths.get( filename ), text.getBytes(), StandardOpenOption.CREATE );
         return "OK";
     }
 
     public static String fileToText( String filename ) throws IOException
     {
-            return String
-                    .join( "\n", Files
-                            .readAllLines( Paths.get( filename ) ) );
+        return String
+                .join( "\n", Files
+                        .readAllLines( Paths.get( filename ) ) );
     }
 
-    public static InputSource inputSource(String value) {
-        return new InputSource( new StringReader(value));
+    public static InputSource inputSource( String value )
+    {
+        return new InputSource( new StringReader( value ) );
     }
 }
