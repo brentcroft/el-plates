@@ -80,7 +80,7 @@ public class ELFunctions
     }
 
     public static void raiseRuntimeException(Object value) {
-        throw new ELException(value.toString());
+        throw new UserException(value.toString());
     }
 
     public static String username()
