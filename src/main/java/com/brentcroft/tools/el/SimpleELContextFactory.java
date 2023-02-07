@@ -2,10 +2,13 @@ package com.brentcroft.tools.el;
 
 import com.sun.el.stream.StreamELResolver;
 import jakarta.el.*;
+import lombok.Getter;
 import lombok.extern.java.Log;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.brentcroft.tools.jstl.JstlNamespace.prefix;
@@ -20,6 +23,9 @@ import static java.lang.String.format;
 @Log
 public class SimpleELContextFactory implements ELContextFactory
 {
+    @Getter
+    private final ImportHandler importHandler = new ImportHandler();
+
     private final Map< String, Method > mappedFunctions = new HashMap<>();
 
     private EvaluationListener[] listeners;
@@ -37,7 +43,8 @@ public class SimpleELContextFactory implements ELContextFactory
         mappedFunctions.put( prefix + ":" + unprefixedName, staticMethod );
     }
 
-    public void setListeners( EvaluationListener... listeners) {
+    public void setListeners( EvaluationListener... listeners )
+    {
         this.listeners = listeners;
     }
 
@@ -82,29 +89,35 @@ public class SimpleELContextFactory implements ELContextFactory
         };
     }
 
-    public void addPrimaryELResolver(ELResolver cELResolver) {
-        if ( customPrimaryResolvers == null) {
+    public void addPrimaryELResolver( ELResolver cELResolver )
+    {
+        if ( customPrimaryResolvers == null )
+        {
             customPrimaryResolvers = new CompositeELResolver();
         }
-        customPrimaryResolvers.add(cELResolver);
+        customPrimaryResolvers.add( cELResolver );
     }
 
-    public void addSecondaryELResolver(ELResolver cELResolver) {
-        if ( customSecondaryResolvers == null)
+    public void addSecondaryELResolver( ELResolver cELResolver )
+    {
+        if ( customSecondaryResolvers == null )
         {
             customSecondaryResolvers = new CompositeELResolver();
         }
-        customSecondaryResolvers.add(cELResolver);
+        customSecondaryResolvers.add( cELResolver );
     }
 
-    ELResolver newResolver(Map< ?, ? > rootObjects) {
-        CompositeELResolver resolver = new CompositeELResolver() {
-            public void setValue(ELContext context, Object base, Object property, Object value) {
+    ELResolver newResolver( Map< ?, ? > rootObjects )
+    {
+        CompositeELResolver resolver = new CompositeELResolver()
+        {
+            public void setValue( ELContext context, Object base, Object property, Object value )
+            {
                 super.setValue( context, base == null ? rootObjects : base, property, value );
             }
         };
         // eg: thread local stack
-        if ( customPrimaryResolvers != null)
+        if ( customPrimaryResolvers != null )
         {
             resolver.add( customPrimaryResolvers );
         }

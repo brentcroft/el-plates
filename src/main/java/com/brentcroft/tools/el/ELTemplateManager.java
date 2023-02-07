@@ -2,8 +2,9 @@ package com.brentcroft.tools.el;
 
 
 import com.brentcroft.tools.jstl.Renderable;
-import lombok.extern.java.Log;
 import jakarta.el.*;
+import lombok.extern.java.Log;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -112,24 +113,27 @@ public class ELTemplateManager implements TextExpander, Evaluator
     {
         return getExpressionFactory()
                 .createValueExpression(
-                    getELContext( rootObjects ),
-                    expression,
-                    clazz );
+                        getELContext( rootObjects ),
+                        expression,
+                        clazz );
     }
 
-    public void addPrimaryResolvers(ELResolver... resolvers) {
+    public void addPrimaryResolvers( ELResolver... resolvers )
+    {
         Stream
                 .of( resolvers )
                 .forEachOrdered( elContextFactory::addPrimaryELResolver );
     }
 
-    public void addSecondaryResolvers(ELResolver... resolvers) {
+    public void addSecondaryResolvers( ELResolver... resolvers )
+    {
         Stream
                 .of( resolvers )
                 .forEachOrdered( elContextFactory::addSecondaryELResolver );
     }
 
-    public void addListeners(EvaluationListener... listeners) {
+    public void addListeners( EvaluationListener... listeners )
+    {
         elContextFactory.setListeners( listeners );
     }
 
@@ -258,22 +262,23 @@ public class ELTemplateManager implements TextExpander, Evaluator
      */
     public Object eval( String expression, Map< String, Object > rootObjects )
     {
-        ELContext ec = getELContext(rootObjects);
+        ELContext ec = getELContext( rootObjects );
 
-        if (!expressions.containsKey( expression )) {
-            ValueExpression exp = getExpressionFactory().createValueExpression(ec, "${" + expression + '}', Object.class);
+        if ( ! expressions.containsKey( expression ) )
+        {
+            ValueExpression exp = getExpressionFactory().createValueExpression( ec, "${" + expression + '}', Object.class );
             expressions.put( expression, exp );
         }
         try
         {
             return expressions.get( expression ).getValue( ec );
         }
-        catch (ELException e)
+        catch ( ELException e )
         {
             ELException cause = e;
-            while (cause.getCause() != null && cause.getCause() instanceof ELException)
+            while ( cause.getCause() != null && cause.getCause() instanceof ELException )
             {
-                cause = (ELException)cause.getCause();
+                cause = ( ELException ) cause.getCause();
             }
             throw cause;
         }
@@ -543,7 +548,8 @@ public class ELTemplateManager implements TextExpander, Evaluator
                 switch ( state + c )
                 {
                     case INSIDE + ESC:
-                        if (state == INSIDE) {
+                        if ( state == INSIDE )
+                        {
                             escaped = true;
                         }
                         break;
@@ -559,14 +565,15 @@ public class ELTemplateManager implements TextExpander, Evaluator
                         break;
 
                     case ENTERING + START:
-                        if (!escaped)
+                        if ( ! escaped )
                         {
                             state = INSIDE;
                             break;
                         }
 
                     case INSIDE + END:
-                        if (!escaped) {
+                        if ( ! escaped )
+                        {
                             state = OUTSIDE;
 
                             elTemplate.addLiteral( literal.toString() );

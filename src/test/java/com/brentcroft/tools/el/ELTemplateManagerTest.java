@@ -328,4 +328,16 @@ public class ELTemplateManagerTest
         assertEquals( 11L, el.eval( "time = 10; time + 1", bindings ) );
     }
 
+    @Test
+    public void test_import_handler()
+    {
+        el
+                .getELContextFactory()
+                .getImportHandler()
+                .importClass( SomeClassWithStaticMembers.class.getTypeName() );
+
+        assertEquals( "hello", el.eval( "SomeClassWithStaticMembers.ELSE", new MapBindings()) );
+        assertEquals( 60, el.eval( "SomeClassWithStaticMembers.sixty()", new MapBindings() ) );
+    }
+
 }

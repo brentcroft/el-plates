@@ -15,11 +15,14 @@ class SimpleELContext extends ELContext
 
     protected ELResolver resolver;
 
+    private final ImportHandler importHandler;
+
     public SimpleELContext( SimpleELContextFactory simpleELContextFactory, Map< ?, ? > rootObjects, EvaluationListener... listeners )
     {
         this.functionMapper = simpleELContextFactory.newFunctionMapper();
         this.variableMapper = SimpleELContextFactory.newVariableMapper();
         this.resolver = simpleELContextFactory.newResolver( rootObjects );
+        this.importHandler = simpleELContextFactory.getImportHandler();
         if (listeners != null) {
             for (EvaluationListener el : listeners) {
                 addEvaluationListener( el );
@@ -31,5 +34,12 @@ class SimpleELContext extends ELContext
     public ELResolver getELResolver()
     {
         return resolver;
+    }
+
+    public ImportHandler getImportHandler() {
+        if (importHandler == null) {
+            return super.getImportHandler();
+        }
+        return importHandler;
     }
 }
