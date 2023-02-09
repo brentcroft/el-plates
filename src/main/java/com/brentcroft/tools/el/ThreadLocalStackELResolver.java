@@ -16,8 +16,9 @@ public class ThreadLocalStackELResolver extends MapELResolver
     private final ThreadLocal< Stack<Map<String,Object>> > scopeStack;
     private final Evaluator evaluator;
     private final TextExpander expander;
+    private final Map< String, Object > staticMap;
 
-    public ThreadLocalStackELResolver(TextExpander expander, Evaluator evaluator, ThreadLocal< Stack<Map<String,Object>> > scopeStack)
+    public ThreadLocalStackELResolver(TextExpander expander, Evaluator evaluator, ThreadLocal< Stack<Map<String,Object>> > scopeStack, Map< String, Object > staticMap)
     {
         if ( expander == null )
         {
@@ -33,6 +34,7 @@ public class ThreadLocalStackELResolver extends MapELResolver
         this.expander = expander;
         this.evaluator = evaluator;
         this.scopeStack = scopeStack;
+        this.staticMap = staticMap;
     }
 
     @Override
@@ -80,6 +82,8 @@ public class ThreadLocalStackELResolver extends MapELResolver
                 ? (Map<String,Object>)params[0]
                 : new HashMap<>();
 
+        scope.put( "$functionName", stepsKey );
+
         scopeStack.get().push(scope);
         try
         {
@@ -120,6 +124,10 @@ public class ThreadLocalStackELResolver extends MapELResolver
         bindings.put( "$self", root );
         if (root instanceof Parented) {
             bindings.put( "$parent", ((Parented)root).getParent() );
+        }
+        if ( staticMap != null )
+        {
+            bindings.put( "$static", staticMap );
         }
         return bindings;
     }

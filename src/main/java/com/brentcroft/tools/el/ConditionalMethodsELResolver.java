@@ -16,8 +16,9 @@ public class ConditionalMethodsELResolver extends MapELResolver
 {
     private ELContextFactory contextFactory;
     private final ThreadLocal< Stack< Map< String, Object > > > scopeStack;
+    private final Map< String, Object > staticMap;
 
-    private static BiFunction< ELContext, LambdaExpression, Boolean > returnHandlingTest = ( ELContext context, LambdaExpression test ) -> {
+    private static final BiFunction< ELContext, LambdaExpression, Boolean > returnHandlingTest = ( ELContext context, LambdaExpression test ) -> {
         try
         {
             return ( Boolean ) test.invoke( context );
@@ -112,6 +113,10 @@ public class ConditionalMethodsELResolver extends MapELResolver
         MapBindings bindings = new MapBindings( owner );
         bindings.put( "$local", scopeStack.get().peek() );
         bindings.put( "$self", owner );
+        if ( staticMap != null )
+        {
+            bindings.put( "$static", staticMap );
+        }
         if ( owner instanceof Parented )
         {
             bindings.put( "$parent", ( ( Parented ) owner ).getParent() );
@@ -138,18 +143,20 @@ public class ConditionalMethodsELResolver extends MapELResolver
         }
         catch ( Exception handled )
         {
-            Exception cause = handled;
-            while ( cause.getCause() != null && cause instanceof ELException )
-            {
-                cause = ( Exception ) cause.getCause();
-            }
-            if ( cause.getCause() instanceof ReturnException )
-            {
-                throw ( ReturnException ) cause.getCause();
-            }
-
-            onEx.invoke( context, cause );
+            onEx.invoke( context, skipOrRaise( handled ) );
         }
+    }
+
+    private Exception skipOrRaise( Exception cause) {
+        while ( cause.getCause() != null && cause instanceof ELException )
+        {
+            cause = ( Exception ) cause.getCause();
+        }
+        if ( cause.getCause() instanceof ReturnException )
+        {
+            throw ( ReturnException ) cause.getCause();
+        }
+        return cause;
     }
 
     private void whileDo( ELContext context, Object[] params )
