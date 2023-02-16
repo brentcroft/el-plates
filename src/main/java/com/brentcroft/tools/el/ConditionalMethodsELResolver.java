@@ -34,6 +34,10 @@ public class ConditionalMethodsELResolver extends MapELResolver
             {
                 cause = ( ELException ) cause.getCause();
             }
+            if ( cause instanceof ReturnException )
+            {
+                return Boolean.parseBoolean( ( ( ReturnException ) cause ).get().toString() );
+            }
             throw cause;
         }
     };
@@ -55,7 +59,9 @@ public class ConditionalMethodsELResolver extends MapELResolver
         {
             return null;
         }
-        Map< String, Object > root = newContainer( ( Map< String, Object > ) base );
+        @SuppressWarnings( "unchecked" )
+        Map< String, Object > baseMap = ( Map< String, Object > ) base;
+        Map< String, Object > root = newContainer( baseMap );
 
         ELContext localContext = contextFactory.getELContext( root );
 
@@ -97,15 +103,36 @@ public class ConditionalMethodsELResolver extends MapELResolver
                 return base;
 
             case "tryExcept":
-                if ( params.length < 2 || ! ( params[ 0 ] instanceof LambdaExpression ) || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                if ( params.length < 2
+                        || ! ( params[ 0 ] instanceof LambdaExpression )
+                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
                 {
                     return null;
                 }
                 tryExcept( localContext, params );
                 context.setPropertyResolved( base, methodName );
                 return base;
+
+            case "put":
+                if ( params.length != 2
+                        || ! ( params[ 0 ] instanceof String )
+                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                {
+                    return null;
+                }
+                putRunnable( localContext, params, baseMap );
+                context.setPropertyResolved( base, methodName );
+                return base;
         }
         return null;
+    }
+
+    private void putRunnable( ELContext localContext, Object[] params, Map< String, Object > base )
+    {
+        String key = ( String ) params[ 0 ];
+        LambdaExpression action = ( LambdaExpression ) params[ 1 ];
+        Runnable runnableAction = () -> action.invoke( localContext );
+        base.put( key, runnableAction );
     }
 
     public Map< String, Object > newContainer( Map< String, Object > owner )
@@ -147,7 +174,8 @@ public class ConditionalMethodsELResolver extends MapELResolver
         }
     }
 
-    private Exception skipOrRaise( Exception cause) {
+    private Exception skipOrRaise( Exception cause )
+    {
         while ( cause.getCause() != null && cause instanceof ELException )
         {
             cause = ( Exception ) cause.getCause();

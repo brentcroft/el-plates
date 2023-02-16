@@ -57,13 +57,20 @@ public class ConditionalMethodsTest
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
         ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver( el, el, scopeStack, staticMap );
         el.addPrimaryResolvers( tlsELResolver );
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver( el.getELContextFactory(), scopeStack, staticMap ) );
 
         MapBindings bindings = new MapBindings()
                 .withEntry( "colors", new MapBindings()
                         .withEntry( "$$testReturn", "c:return( 29 ); 31" )
+                        .withEntry( "$$testReturnInIfThen", "$self.ifThen( () -> c:return(true), () -> c:return('ok') );" )
+                        .withEntry( "$$testReturnInIfThenElse", "$self.ifThenElse( () -> c:return(false), () -> c:return('XXX'), () -> c:return('ok') );" )
+                        .withEntry( "$$testReturnInWhileDo", "$self.called = 'no'; $self.whileDo( () -> c:return(false), () -> ( $self.called = 'yes' ), 5 ); called" )
                 );
 
         assertEquals( 29L, el.eval( "colors.testReturn()", bindings ) );
+        assertEquals( "ok", el.eval( "colors.testReturnInIfThen()", bindings ) );
+        assertEquals( "ok", el.eval( "colors.testReturnInIfThenElse()", bindings ) );
+        assertEquals( "no", el.eval( "colors.testReturnInWhileDo()", bindings ) );
     }
 
 
@@ -76,7 +83,6 @@ public class ConditionalMethodsTest
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
         ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver( el, el, scopeStack, null );
         el.addPrimaryResolvers( tlsELResolver );
-
         el.addSecondaryResolvers( new ConditionalMethodsELResolver( el.getELContextFactory(), scopeStack, staticMap ) );
 
         MapBindings bindings = new MapBindings()
@@ -193,8 +199,6 @@ public class ConditionalMethodsTest
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
         ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver( el, el, scopeStack, staticMap );
         el.addPrimaryResolvers( tlsELResolver );
-
-
         el.addSecondaryResolvers( new ConditionalMethodsELResolver( el.getELContextFactory(), scopeStack, staticMap ) );
 
         MapBindings modelScope = new MapBindings()
@@ -219,6 +223,33 @@ public class ConditionalMethodsTest
         el.eval( "a.b.counter = a.b.counter + 1", modelScope );
         assertEquals( "ifThenElseFalse", el.eval( "a.b.testIfThenElse()", modelScope ) );
     }
+
+    @Test
+    public void test_runnable_methods()
+    {
+        Stack< Map< String, Object > > stack = new Stack<>();
+        stack.push( new HashMap<>() );
+
+        ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
+        ThreadLocalStackELResolver tlsELResolver = new ThreadLocalStackELResolver( el, el, scopeStack, staticMap );
+        el.addPrimaryResolvers( tlsELResolver );
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver( el.getELContextFactory(), scopeStack, staticMap ) );
+
+        MapBindings modelScope = new MapBindings()
+                .withEntry( "a", new MapBindings()
+                                .withEntry(
+                                        "$$testPutRunnables",
+                                        "$self.put( 'xxx', () -> c:println('hello from put runnable') );\n" +
+                                              "$self.shout = ( message ) -> c:println( message );")
+                );
+
+        // put the runnable
+        el.eval("a.testPutRunnables()", modelScope);
+        el.eval("a.xxx.run()", modelScope);
+        el.eval("a.xxx()", modelScope);
+        el.eval("a.shout( 'out loud' )", modelScope);
+    }
+
 
 
     @Test
