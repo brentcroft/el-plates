@@ -114,9 +114,6 @@ public class ELTemplateManagerTest
 //                                .withEntry( "text", "Duke's Birthday: %1$tm %1$te,%1$tY" )
 //                                .withEntry( "date", new GregorianCalendar( 1995, Calendar.MAY, 23 ) ) ) );
 
-
-        el.setValueExpressionFilter( null );
-
         assertEquals(
                 "Duke's Birthday: 05 23,1995",
                 el.expandText( "${c:format( text, [ date ] )}",

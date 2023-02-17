@@ -64,14 +64,6 @@ public class ELTemplateManager implements TextExpander, Evaluator
     private final Map< String, ELTemplate > templates = new HashMap<>();
     private final Map< String, ValueExpression > expressions = new HashMap<>();
 
-    // 2013-06-01: ACD: this is what I now would expect by default
-    // 2020-01-25: ACD: why?
-    private ELFilter valueExpressionFilter = null;
-
-
-    // default load mechanism fails if ELTemplateManager is not loaded by the
-    // common class-loader
-    private String expressionFactoryClass = null;
 
 
     public void mapFunctions( Map< String, Method > functions )
@@ -83,21 +75,6 @@ public class ELTemplateManager implements TextExpander, Evaluator
     {
         elContextFactory.mapFunction( prefixedName, staticMethod );
     }
-
-
-    public ELTemplateManager withELFilter( ELFilter elFilter )
-    {
-        this.setValueExpressionFilter( elFilter );
-        return this;
-    }
-
-
-    public void setExpressionFactoryClass( String expressionFactoryClass )
-    {
-        this.expressionFactoryClass = expressionFactoryClass;
-        expressionFactory = null;
-    }
-
 
     public ELContextFactory getELContextFactory()
     {
@@ -143,43 +120,12 @@ public class ELTemplateManager implements TextExpander, Evaluator
         {
             return expressionFactory;
         }
-        else if ( expressionFactoryClass == null )
-        {
-            expressionFactory = ExpressionFactory.newInstance();
-
-            log.fine( () -> "Loaded default ExpressionFactory: " + expressionFactory );
-        }
         else
         {
-            try
-            {
-                expressionFactory = ( ExpressionFactory ) getClass()
-                        .getClassLoader()
-                        .loadClass( expressionFactoryClass )
-                        .newInstance();
-
-                log.fine( () -> "Loaded named ExpressionFactory: " + expressionFactory );
-            }
-            catch ( Exception e )
-            {
-                throw new RuntimeException( "Unable to instantiate ExpressionFactory using classname: "
-                        + expressionFactoryClass,
-                        e );
-            }
+            expressionFactory = ExpressionFactory.newInstance();
         }
 
         return expressionFactory;
-    }
-
-
-    /**
-     * Set an ELFilter to apply to the results of ValueExpressions.
-     *
-     * @param valueExpressionFilter an ELFilter to apply to the results of ValueExpressions
-     */
-    public void setValueExpressionFilter( ELFilter valueExpressionFilter )
-    {
-        this.valueExpressionFilter = valueExpressionFilter;
     }
 
     /**
@@ -266,7 +212,8 @@ public class ELTemplateManager implements TextExpander, Evaluator
 
         if ( ! expressions.containsKey( expression ) )
         {
-            ValueExpression exp = getExpressionFactory().createValueExpression( ec, "${" + expression + '}', Object.class );
+            ValueExpression exp = getExpressionFactory()
+                    .createValueExpression( ec, "${" + expression + '}', Object.class );
             expressions.put( expression, exp );
         }
         try
@@ -425,13 +372,7 @@ public class ELTemplateManager implements TextExpander, Evaluator
                         {
                             final Object value = element.valueExpression.getValue( context );
 
-                            // maybe filter value expression
-                            final Object filteredValue = ( valueExpressionFilter == null || value == null )
-                                                         ? value
-                                                         : valueExpressionFilter.filter( value );
-
-                            out.append( filteredValue == null ? "" : filteredValue );
-
+                            out.append( value == null ? "" : value );
                         }
                         catch ( RuntimeException e )
                         {

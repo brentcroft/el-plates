@@ -1,7 +1,6 @@
 package com.brentcroft.tools.jstl;
 
 
-import com.brentcroft.tools.el.ELFilter;
 import com.brentcroft.tools.el.ELTemplateManager;
 import com.brentcroft.tools.el.TextExpander;
 import com.brentcroft.tools.jstl.tag.JstlElement;
@@ -81,19 +80,11 @@ public class JstlTemplateManager implements TextExpander
         log.fine( () -> "dropped templates" );
     }
 
-
-    public JstlTemplateManager withELFilter( ELFilter elFilter )
-    {
-        getELTemplateManager().setValueExpressionFilter( elFilter );
-        return this;
-    }
-
     public JstlTemplateManager withStripComments( boolean stripComments )
     {
         setStripComments( stripComments );
         return this;
     }
-
 
     public ELTemplateManager getELTemplateManager()
     {
