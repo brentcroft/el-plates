@@ -57,79 +57,93 @@ public class ConditionalMethodsELResolver extends MapELResolver
         }
         @SuppressWarnings( "unchecked" )
         Map< String, Object > baseMap = ( Map< String, Object > ) base;
-        Map< String, Object > root = newContainer( baseMap );
 
-        ELContext localContext = contextFactory.getELContext( root );
+        scopeStack.get().push( newContainer( baseMap ) );
 
-        switch ( methodName.toString() )
+        try
         {
-            case "ifThen":
-                if ( params.length < 2
-                        || ! ( params[ 0 ] instanceof LambdaExpression )
-                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                {
-                    return null;
-                }
-                ifThen( localContext, params );
-                context.setPropertyResolved( base, methodName );
-                return base;
+            switch ( methodName.toString() )
+            {
+                case "ifThen":
+                    if ( params.length < 2
+                            || ! ( params[ 0 ] instanceof LambdaExpression )
+                            || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                    {
+                        return null;
+                    }
+                    ifThen( context, params );
+                    context.setPropertyResolved( base, methodName );
+                    return base;
 
-            case "ifThenElse":
-                if ( params.length < 3
-                        || ! ( params[ 0 ] instanceof LambdaExpression )
-                        || ! ( params[ 1 ] instanceof LambdaExpression )
-                        || ! ( params[ 2 ] instanceof LambdaExpression ) )
-                {
-                    return null;
-                }
-                ifThenElse( localContext, params );
-                context.setPropertyResolved( base, methodName );
-                return base;
+                case "ifThenElse":
+                    if ( params.length < 3
+                            || ! ( params[ 0 ] instanceof LambdaExpression )
+                            || ! ( params[ 1 ] instanceof LambdaExpression )
+                            || ! ( params[ 2 ] instanceof LambdaExpression ) )
+                    {
+                        return null;
+                    }
+                    ifThenElse( context, params );
+                    context.setPropertyResolved( base, methodName );
+                    return base;
 
-            case "whileDo":
-                if ( params.length < 3
-                        || ! ( params[ 0 ] instanceof LambdaExpression )
-                        || ! ( params[ 1 ] instanceof LambdaExpression )
-                        || ! ( params[ 2 ] instanceof Number ) )
-                {
-                    return null;
-                }
-                whileDo( localContext, params );
-                context.setPropertyResolved( base, methodName );
-                return base;
+                case "whileDo":
+                    if ( params.length < 3
+                            || ! ( params[ 0 ] instanceof LambdaExpression )
+                            || ! ( params[ 1 ] instanceof LambdaExpression )
+                            || ! ( params[ 2 ] instanceof Number ) )
+                    {
+                        return null;
+                    }
+                    whileDo( context, params );
+                    context.setPropertyResolved( base, methodName );
+                    return base;
 
-            case "tryExcept":
-                if ( params.length < 2
-                        || ! ( params[ 0 ] instanceof LambdaExpression )
-                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                {
-                    return null;
-                }
-                tryExcept( localContext, params );
-                context.setPropertyResolved( base, methodName );
-                return base;
+                case "tryExcept":
+                    if ( params.length < 2
+                            || ! ( params[ 0 ] instanceof LambdaExpression )
+                            || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                    {
+                        return null;
+                    }
+                    tryExcept( context, params );
+                    context.setPropertyResolved( base, methodName );
+                    return base;
 
-            case "put":
-                if ( params.length != 2
-                        || ! ( params[ 0 ] instanceof String )
-                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                {
-                    return null;
-                }
-                putRunnable( localContext, params, baseMap );
-                context.setPropertyResolved( base, methodName );
-                return base;
+
+                case "tryExceptFinally":
+                    if ( params.length < 3
+                            || ! ( params[ 0 ] instanceof LambdaExpression )
+                            || ! ( params[ 1 ] instanceof LambdaExpression )
+                            || ! ( params[ 2 ] instanceof LambdaExpression )
+                    )
+                    {
+                        return null;
+                    }
+                    tryExceptFinally( context, params );
+                    context.setPropertyResolved( base, methodName );
+                    return base;
+
+                case "put":
+                    if ( params.length != 2
+                            || ! ( params[ 0 ] instanceof String )
+                            || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                    {
+                        return null;
+                    }
+                    putRunnable( context, params, baseMap );
+                    context.setPropertyResolved( base, methodName );
+                    return base;
+            }
         }
+        finally
+        {
+            scopeStack.get().pop();
+        }
+
         return null;
     }
 
-    private void putRunnable( ELContext localContext, Object[] params, Map< String, Object > base )
-    {
-        String key = ( String ) params[ 0 ];
-        LambdaExpression action = ( LambdaExpression ) params[ 1 ];
-        Runnable runnableAction = () -> action.invoke( localContext );
-        base.put( key, runnableAction );
-    }
 
     public Map< String, Object > newContainer( Map< String, Object > owner )
     {
@@ -147,6 +161,13 @@ public class ConditionalMethodsELResolver extends MapELResolver
         return bindings;
     }
 
+    private void putRunnable( ELContext localContext, Object[] params, Map< String, Object > base )
+    {
+        String key = ( String ) params[ 0 ];
+        LambdaExpression action = ( LambdaExpression ) params[ 1 ];
+        Runnable runnableAction = () -> action.invoke( localContext );
+        base.put( key, runnableAction );
+    }
 
     private void tryExcept( ELContext context, Object[] params )
     {
@@ -163,6 +184,32 @@ public class ConditionalMethodsELResolver extends MapELResolver
         catch ( Exception handled )
         {
             onEx.invoke( context, skipOrRaise( handled ) );
+        }
+    }
+
+    private void tryExceptFinally( ELContext context, Object[] params )
+    {
+        if ( params.length < 3
+                || ! ( params[ 0 ] instanceof LambdaExpression )
+                || ! ( params[ 1 ] instanceof LambdaExpression )
+                || ! ( params[ 2 ] instanceof LambdaExpression ) )
+        {
+            throw new ELException( "Must have arguments: tryExceptFinally( LambdaExpression, LambdaExpression, LambdaExpression )" );
+        }
+        LambdaExpression ops = ( LambdaExpression ) params[ 0 ];
+        LambdaExpression onEx = ( LambdaExpression ) params[ 1 ];
+        LambdaExpression finOps = ( LambdaExpression ) params[ 2 ];
+        try
+        {
+            ops.invoke( context );
+        }
+        catch ( Exception handled )
+        {
+            onEx.invoke( context, skipOrRaise( handled ) );
+        }
+        finally
+        {
+            finOps.invoke( context );
         }
     }
 

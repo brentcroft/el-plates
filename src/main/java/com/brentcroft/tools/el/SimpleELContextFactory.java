@@ -72,6 +72,12 @@ public class SimpleELContextFactory implements ELContextFactory
         return new SimpleELContext( this, rootObjects, listeners );
     }
 
+    public ELContext getELContext( Map< ?, ? > rootObjects, SimpleELContext parent )
+    {
+        parent.getRootObjects();
+        return new SimpleELContext( this, rootObjects, listeners );
+    }
+
     public ELContext getELConfigContext()
     {
         return new RootELContext( null );

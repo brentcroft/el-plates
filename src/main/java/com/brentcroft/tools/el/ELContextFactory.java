@@ -9,6 +9,8 @@ public interface ELContextFactory
 {
     ELContext getELContext( Map< ?, ? > rootObjects );
 
+    ELContext getELContext( Map< ?, ? > rootObjects, SimpleELContext parent );
+
     ELContext getELConfigContext();
 
     ImportHandler getImportHandler();

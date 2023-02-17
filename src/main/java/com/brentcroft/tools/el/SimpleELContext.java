@@ -13,12 +13,16 @@ class SimpleELContext extends ELContext
     @Getter
     protected final VariableMapper variableMapper;
 
+    @Getter
+    protected final Map< ?, ? > rootObjects;
+
     protected ELResolver resolver;
 
     private final ImportHandler importHandler;
 
     public SimpleELContext( SimpleELContextFactory simpleELContextFactory, Map< ?, ? > rootObjects, EvaluationListener... listeners )
     {
+        this.rootObjects = rootObjects;
         this.functionMapper = simpleELContextFactory.newFunctionMapper();
         this.variableMapper = SimpleELContextFactory.newVariableMapper();
         this.resolver = simpleELContextFactory.newResolver( rootObjects );
