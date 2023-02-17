@@ -65,7 +65,6 @@ public class ELTemplateManager implements TextExpander, Evaluator
     private final Map< String, ValueExpression > expressions = new HashMap<>();
 
 
-
     public void mapFunctions( Map< String, Method > functions )
     {
         elContextFactory.mapFunctions( functions );
@@ -228,6 +227,10 @@ public class ELTemplateManager implements TextExpander, Evaluator
                 cause = ( ELException ) cause.getCause();
             }
             throw cause;
+        }
+        catch ( Exception e )
+        {
+            throw new ELException( format( "Problem with expression: %s", expression ), e );
         }
     }
 

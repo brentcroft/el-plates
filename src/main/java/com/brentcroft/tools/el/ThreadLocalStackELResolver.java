@@ -80,29 +80,17 @@ public class ThreadLocalStackELResolver extends MapELResolver
             Object runnable = root.get( runnableKey );
             if ( runnable instanceof LambdaExpression )
             {
-                try
-                {
-                    return ( ( LambdaExpression ) runnable ).invoke( context, params );
-                }
-                finally
-                {
-                    context.setPropertyResolved( base, methodName );
-                }
+                Object result = ( ( LambdaExpression ) runnable ).invoke( context, params );
+                context.setPropertyResolved( base, methodName );
+                return result;
             }
             else if ( runnable instanceof Runnable )
             {
-                try
-                {
-                    ( ( Runnable ) runnable ).run();
-                    return null;
-                }
-                finally
-                {
-                    context.setPropertyResolved( base, methodName );
-                }
+                ( ( Runnable ) runnable ).run();
+                context.setPropertyResolved( base, methodName );
+                return null;
             }
         }
-
 
         String stepsKey = format( "$$%s", methodName );
 

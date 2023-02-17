@@ -70,14 +70,8 @@ public class ConditionalMethodsELResolver extends MapELResolver
                 {
                     return null;
                 }
-                try
-                {
-                    ifThen( localContext, params );
-                }
-                finally
-                {
-                    context.setPropertyResolved( base, methodName );
-                }
+                ifThen( localContext, params );
+                context.setPropertyResolved( base, methodName );
                 return base;
 
             case "ifThenElse":
@@ -88,14 +82,8 @@ public class ConditionalMethodsELResolver extends MapELResolver
                 {
                     return null;
                 }
-                try
-                {
-                    ifThenElse( localContext, params );
-                }
-                finally
-                {
-                    context.setPropertyResolved( base, methodName );
-                }
+                ifThenElse( localContext, params );
+                context.setPropertyResolved( base, methodName );
                 return base;
 
             case "whileDo":
@@ -106,14 +94,8 @@ public class ConditionalMethodsELResolver extends MapELResolver
                 {
                     return null;
                 }
-                try
-                {
-                    whileDo( localContext, params );
-                }
-                finally
-                {
-                    context.setPropertyResolved( base, methodName );
-                }
+                whileDo( localContext, params );
+                context.setPropertyResolved( base, methodName );
                 return base;
 
             case "tryExcept":
@@ -123,14 +105,8 @@ public class ConditionalMethodsELResolver extends MapELResolver
                 {
                     return null;
                 }
-                try
-                {
-                    tryExcept( localContext, params );
-                }
-                finally
-                {
-                    context.setPropertyResolved( base, methodName );
-                }
+                tryExcept( localContext, params );
+                context.setPropertyResolved( base, methodName );
                 return base;
 
             case "put":
@@ -140,14 +116,8 @@ public class ConditionalMethodsELResolver extends MapELResolver
                 {
                     return null;
                 }
-                try
-                {
-                    putRunnable( localContext, params, baseMap );
-                }
-                finally
-                {
-                    context.setPropertyResolved( base, methodName );
-                }
+                putRunnable( localContext, params, baseMap );
+                context.setPropertyResolved( base, methodName );
                 return base;
         }
         return null;
