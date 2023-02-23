@@ -49,111 +49,102 @@ public class ConditionalMethodsELResolver extends MapELResolver
     @SuppressWarnings( "unchecked" )
     public Object invoke( ELContext context, Object base, Object methodName, Class< ? >[] paramTypes, Object[] params )
     {
-        if ( methodName == null )
+        if ( base == null || methodName == null )
+        {
+            return null;
+        }
+        if ( !(base instanceof Map) )
         {
             return null;
         }
 
-        Map< String, Object > baseMap = null;
-        if ( base instanceof Map )
+        Map< String, Object > baseMap = ( Map< String, Object > ) base;
+
+        ELContext localContext = contextFactory.getELContext( newContainer( baseMap ) );
+
+        switch ( methodName.toString() )
         {
-            baseMap = ( Map< String, Object > ) base;
-            scopeStack.get().push( newContainer( baseMap ) );
+            case "ifThen":
+                if ( params.length < 2
+                        || ! ( params[ 0 ] instanceof LambdaExpression )
+                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                {
+                    return null;
+                }
+                ifThen( localContext, params );
+                context.setPropertyResolved( base, methodName );
+                return base;
+
+            case "ifThenElse":
+                if ( params.length < 3
+                        || ! ( params[ 0 ] instanceof LambdaExpression )
+                        || ! ( params[ 1 ] instanceof LambdaExpression )
+                        || ! ( params[ 2 ] instanceof LambdaExpression ) )
+                {
+                    return null;
+                }
+                ifThenElse( localContext, params );
+                context.setPropertyResolved( base, methodName );
+                return base;
+
+            case "whileDo":
+                if ( params.length < 3
+                        || ! ( params[ 0 ] instanceof LambdaExpression )
+                        || ! ( params[ 1 ] instanceof LambdaExpression )
+                        || ! ( params[ 2 ] instanceof Number ) )
+                {
+                    return null;
+                }
+                whileDo( localContext, params );
+                context.setPropertyResolved( base, methodName );
+                return base;
+
+            case "tryExcept":
+                if ( params.length < 2
+                        || ! ( params[ 0 ] instanceof LambdaExpression )
+                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                {
+                    return null;
+                }
+                tryExcept( localContext, params );
+                context.setPropertyResolved( base, methodName );
+                return base;
+
+
+            case "tryExceptFinally":
+                if ( params.length < 3
+                        || ! ( params[ 0 ] instanceof LambdaExpression )
+                        || ! ( params[ 1 ] instanceof LambdaExpression )
+                        || ! ( params[ 2 ] instanceof LambdaExpression )
+                )
+                {
+                    return null;
+                }
+                tryExceptFinally( localContext, params );
+                context.setPropertyResolved( base, methodName );
+                return base;
+
+            case "put":
+                if ( params.length != 2
+                        || ! ( params[ 0 ] instanceof String )
+                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                {
+                    return null;
+                }
+
+                putRunnable( localContext, params, baseMap );
+                context.setPropertyResolved( base, methodName );
+                return base;
         }
 
-        try
-        {
-            switch ( methodName.toString() )
-            {
-                case "ifThen":
-                    if ( params.length < 2
-                            || ! ( params[ 0 ] instanceof LambdaExpression )
-                            || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                    {
-                        return null;
-                    }
-                    ifThen( context, params );
-                    context.setPropertyResolved( base, methodName );
-                    return base;
-
-                case "ifThenElse":
-                    if ( params.length < 3
-                            || ! ( params[ 0 ] instanceof LambdaExpression )
-                            || ! ( params[ 1 ] instanceof LambdaExpression )
-                            || ! ( params[ 2 ] instanceof LambdaExpression ) )
-                    {
-                        return null;
-                    }
-                    ifThenElse( context, params );
-                    context.setPropertyResolved( base, methodName );
-                    return base;
-
-                case "whileDo":
-                    if ( params.length < 3
-                            || ! ( params[ 0 ] instanceof LambdaExpression )
-                            || ! ( params[ 1 ] instanceof LambdaExpression )
-                            || ! ( params[ 2 ] instanceof Number ) )
-                    {
-                        return null;
-                    }
-                    whileDo( context, params );
-                    context.setPropertyResolved( base, methodName );
-                    return base;
-
-                case "tryExcept":
-                    if ( params.length < 2
-                            || ! ( params[ 0 ] instanceof LambdaExpression )
-                            || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                    {
-                        return null;
-                    }
-                    tryExcept( context, params );
-                    context.setPropertyResolved( base, methodName );
-                    return base;
-
-
-                case "tryExceptFinally":
-                    if ( params.length < 3
-                            || ! ( params[ 0 ] instanceof LambdaExpression )
-                            || ! ( params[ 1 ] instanceof LambdaExpression )
-                            || ! ( params[ 2 ] instanceof LambdaExpression )
-                    )
-                    {
-                        return null;
-                    }
-                    tryExceptFinally( context, params );
-                    context.setPropertyResolved( base, methodName );
-                    return base;
-
-                case "put":
-                    if ( params.length != 2
-                            || ! ( params[ 0 ] instanceof String )
-                            || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                    {
-                        return null;
-                    }
-
-                    putRunnable( context, params, baseMap );
-                    context.setPropertyResolved( base, methodName );
-                    return base;
-            }
-        }
-        finally
-        {
-            if ( baseMap != null )
-            {
-                scopeStack.get().pop();
-            }
-        }
 
         return null;
     }
 
-
     public Map< String, Object > newContainer( Map< String, Object > owner )
     {
         MapBindings bindings = new MapBindings( owner );
-        bindings.put( "$local", bindings );
+        bindings.put( "$local", scopeStack.get().peek() );
         bindings.put( "$self", owner );
         if ( staticMap != null )
         {

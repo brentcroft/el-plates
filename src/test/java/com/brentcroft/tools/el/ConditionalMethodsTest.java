@@ -87,10 +87,10 @@ public class ConditionalMethodsTest
 
         MapBindings bindings = new MapBindings().withEntry( "colors", new MapBindings() );
 
-        el.eval( "colors.time = 10; colors.whileDo(()-> time < 20, () -> (colors.time = time + 1 ), 12 )", bindings );
+        el.eval( "colors.time = 10; colors.whileDo(()-> time < 20, () -> ($self.time = time + 1 ), 12 )", bindings );
         assertEquals( 20L, el.eval( "colors.time", bindings ) );
 
-        el.eval( "colors.whileDo( () -> true, () -> 0, 0, () -> ( colors.error = 12345 ) )", bindings );
+        el.eval( "colors.whileDo( () -> true, () -> 0, 0, () -> ( $self.error = 12345 ) )", bindings );
         assertEquals( 12345L, el.eval( "colors.error", bindings ) );
     }
 

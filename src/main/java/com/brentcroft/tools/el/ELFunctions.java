@@ -58,6 +58,7 @@ public class ELFunctions
 
             em.mapFunction( "return", ELFunctions.class.getMethod( "raiseReturnException", Object.class ) );
             em.mapFunction( "raise", ELFunctions.class.getMethod( "raiseRuntimeException", Object.class ) );
+            em.mapFunction( "assertTrue", ELFunctions.class.getMethod( "assertTrue", boolean.class, String.class ) );
 
             em.mapFunction( "inputSource", ELFunctions.class.getMethod( "inputSource", String.class ) );
         }
@@ -75,6 +76,14 @@ public class ELFunctions
     public static void raiseRuntimeException( Object value )
     {
         throw new UserException( value.toString() );
+    }
+
+    public static void assertTrue( boolean test, String failMessage )
+    {
+        if( test ) {
+            return;
+        }
+        throw new AssertionError(failMessage);
     }
 
     public static String username()
