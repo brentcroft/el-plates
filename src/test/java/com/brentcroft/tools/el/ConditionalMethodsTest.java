@@ -85,17 +85,13 @@ public class ConditionalMethodsTest
         el.addPrimaryResolvers( tlsELResolver );
         el.addSecondaryResolvers( new ConditionalMethodsELResolver( el.getELContextFactory(), scopeStack, staticMap ) );
 
-        MapBindings bindings = new MapBindings()
-                .withEntry( "colors", new MapBindings()
-                        .withEntry( "color1", "blue" )
-                        .withEntry( "color2", "orange" )
-                        .withEntry( "color3", "yellow" )
-                        .withEntry( "color4", "obtuse" )
-                );
+        MapBindings bindings = new MapBindings().withEntry( "colors", new MapBindings() );
 
-        el.eval( "colors.time = 10; colors.whileDo(()-> time < 20, () -> ($self.time = time + 1 ), 12 )", bindings );
-
+        el.eval( "colors.time = 10; colors.whileDo(()-> time < 20, () -> (colors.time = time + 1 ), 12 )", bindings );
         assertEquals( 20L, el.eval( "colors.time", bindings ) );
+
+        el.eval( "colors.whileDo( () -> true, () -> 0, 0, () -> ( colors.error = 12345 ) )", bindings );
+        assertEquals( 12345L, el.eval( "colors.error", bindings ) );
     }
 
 

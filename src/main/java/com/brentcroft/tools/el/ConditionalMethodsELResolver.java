@@ -8,6 +8,7 @@ import jakarta.el.MapELResolver;
 import lombok.AllArgsConstructor;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.function.BiFunction;
 
@@ -45,20 +46,20 @@ public class ConditionalMethodsELResolver extends MapELResolver
         return null;
     }
 
+    @SuppressWarnings( "unchecked" )
     public Object invoke( ELContext context, Object base, Object methodName, Class< ? >[] paramTypes, Object[] params )
     {
-        if ( base == null || methodName == null )
+        if ( methodName == null )
         {
             return null;
         }
-        if ( ! ( base instanceof Map ) )
-        {
-            return null;
-        }
-        @SuppressWarnings( "unchecked" )
-        Map< String, Object > baseMap = ( Map< String, Object > ) base;
 
-        scopeStack.get().push( newContainer( baseMap ) );
+        Map< String, Object > baseMap = null;
+        if ( base instanceof Map )
+        {
+            baseMap = ( Map< String, Object > ) base;
+            scopeStack.get().push( newContainer( baseMap ) );
+        }
 
         try
         {
@@ -131,6 +132,7 @@ public class ConditionalMethodsELResolver extends MapELResolver
                     {
                         return null;
                     }
+
                     putRunnable( context, params, baseMap );
                     context.setPropertyResolved( base, methodName );
                     return base;
@@ -138,7 +140,10 @@ public class ConditionalMethodsELResolver extends MapELResolver
         }
         finally
         {
-            scopeStack.get().pop();
+            if ( baseMap != null )
+            {
+                scopeStack.get().pop();
+            }
         }
 
         return null;
@@ -148,7 +153,7 @@ public class ConditionalMethodsELResolver extends MapELResolver
     public Map< String, Object > newContainer( Map< String, Object > owner )
     {
         MapBindings bindings = new MapBindings( owner );
-        bindings.put( "$local", scopeStack.get().peek() );
+        bindings.put( "$local", bindings );
         bindings.put( "$self", owner );
         if ( staticMap != null )
         {
@@ -233,12 +238,19 @@ public class ConditionalMethodsELResolver extends MapELResolver
                 || ! ( params[ 1 ] instanceof LambdaExpression )
                 || ! ( params[ 2 ] instanceof Number ) )
         {
-            throw new ELException( "Must have arguments: whileDo( LambdaExpression, LambdaExpression, Number )" );
+            throw new ELException( "Must have arguments: whileDo( LambdaExpression, LambdaExpression, Number[, LambdaExpression] )" );
         }
         final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
         final LambdaExpression ops = ( LambdaExpression ) params[ 1 ];
         int maxLoops = ( ( Number ) params[ 2 ] ).intValue();
         int currentLoop = 0;
+
+        Optional< LambdaExpression > onTimeout = Optional
+                .ofNullable(
+                        ( params.length > 3 && params[ 3 ] instanceof LambdaExpression )
+                        ? ( LambdaExpression ) params[ 3 ]
+                        : null
+                );
 
         while ( returnHandlingTest.apply( context, test ) && maxLoops > currentLoop )
         {
@@ -247,7 +259,9 @@ public class ConditionalMethodsELResolver extends MapELResolver
         }
         if ( currentLoop >= maxLoops )
         {
-            throw new RetriesException( maxLoops, test.toString() );
+            onTimeout
+                    .orElseThrow( () -> new RetriesException( maxLoops, test.toString() ) )
+                    .invoke( context );
         }
     }
 
