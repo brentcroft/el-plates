@@ -243,6 +243,7 @@ public class ConditionalMethodsELResolver extends MapELResolver
                         : null
                 );
 
+        long started = System.currentTimeMillis();
         while ( returnHandlingTest.apply( context, test ) && maxLoops > currentLoop )
         {
             currentLoop++;
@@ -250,9 +251,12 @@ public class ConditionalMethodsELResolver extends MapELResolver
         }
         if ( currentLoop >= maxLoops )
         {
+            double durationSeconds = Long
+                    .valueOf( System.currentTimeMillis() - started).doubleValue() / 1000;
+
             onTimeout
                     .orElseThrow( () -> new RetriesException( maxLoops, test.toString() ) )
-                    .invoke( context );
+                    .invoke( context, durationSeconds );
         }
     }
 

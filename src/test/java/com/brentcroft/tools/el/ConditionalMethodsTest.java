@@ -9,7 +9,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
+import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 public class ConditionalMethodsTest
@@ -90,8 +92,14 @@ public class ConditionalMethodsTest
         el.eval( "colors.time = 10; colors.whileDo(()-> time < 20, () -> ($self.time = time + 1 ), 12 )", bindings );
         assertEquals( 20L, el.eval( "colors.time", bindings ) );
 
-        el.eval( "colors.whileDo( () -> true, () -> 0, 0, () -> ( $self.error = 12345 ) )", bindings );
-        assertEquals( 12345L, el.eval( "colors.error", bindings ) );
+        el.eval( "colors.whileDo( () -> true, () -> c:delay(500), 1, ( s ) -> ( $self.timeWaiting = s ) )", bindings );
+
+        Double timeWaiting = (Double)el.eval( "colors.timeWaiting", bindings );
+
+        assertTrue(
+                format("Time waiting is too large: %s", timeWaiting),
+                Math.abs( 0.5 - timeWaiting ) < 0.1
+        );
     }
 
 
