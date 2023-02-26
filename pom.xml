@@ -5,7 +5,7 @@
 
 	<groupId>com.brentcroft.tools</groupId>
 	<artifactId>el-plates</artifactId>
-	<version>01.02.22</version>
+	<version>01.02.23</version>
 
 	<name>Brentcroft EL/JSTL Templates</name>
 
@@ -39,6 +39,7 @@
 	</scm>
 
 	<properties>
+		<el-model.version>01.01.24</el-model.version>
 		<jakarta-el.version>4.0.2</jakarta-el.version>
 		<junit.version>4.13.2</junit.version>
 		<lombok.version>1.18.24</lombok.version>
@@ -55,10 +56,15 @@
 			<artifactId>jakarta.el</artifactId>
 			<version>${jakarta-el.version}</version>
 		</dependency>
-
 		<!--
 			TEST ONLY
 		-->
+		<dependency>
+			<groupId>com.brentcroft.tools</groupId>
+			<artifactId>el-model</artifactId>
+			<version>${el-model.version}</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

@@ -39,10 +39,24 @@ public class ConditionalMethodsELResolver extends MapELResolver
         }
     };
 
-
     @Override
     public Object getValue( ELContext context, Object base, Object property )
     {
+        if ( base == null )
+        {
+            base = scopeStack.get().peek();
+        }
+        if ( context == null )
+        {
+            throw new NullPointerException();
+        }
+        if ( base instanceof Map && ( ( Map< ?, ? > ) base ).containsKey( property ) )
+        {
+            context.setPropertyResolved( base, property );
+            Map< ?, ? > map = ( Map< ?, ? > ) base;
+            return map.get( property );
+        }
+
         return null;
     }
 
@@ -60,83 +74,72 @@ public class ConditionalMethodsELResolver extends MapELResolver
 
         Map< String, Object > baseMap = ( Map< String, Object > ) base;
 
-        ELContext localContext = contextFactory.getELContext( newContainer( baseMap ) );
+        scopeStack.get().push( newContainer( baseMap ) );
 
-        switch ( methodName.toString() )
-        {
-            case "ifThen":
-                if ( params.length < 2
-                        || ! ( params[ 0 ] instanceof LambdaExpression )
-                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                {
-                    return null;
-                }
-                ifThen( localContext, params );
-                context.setPropertyResolved( base, methodName );
-                return base;
+        try {
+            switch ( methodName.toString() )
+            {
+                case "ifThen":
+                    if ( params.length < 2
+                            || ! ( params[ 0 ] instanceof LambdaExpression )
+                            || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                    {
+                        return null;
+                    }
+                    ifThen( context, params );
+                    context.setPropertyResolved( base, methodName );
+                    return base;
 
-            case "ifThenElse":
-                if ( params.length < 3
-                        || ! ( params[ 0 ] instanceof LambdaExpression )
-                        || ! ( params[ 1 ] instanceof LambdaExpression )
-                        || ! ( params[ 2 ] instanceof LambdaExpression ) )
-                {
-                    return null;
-                }
-                ifThenElse( localContext, params );
-                context.setPropertyResolved( base, methodName );
-                return base;
+                case "ifThenElse":
+                    if ( params.length < 3
+                            || ! ( params[ 0 ] instanceof LambdaExpression )
+                            || ! ( params[ 1 ] instanceof LambdaExpression )
+                            || ! ( params[ 2 ] instanceof LambdaExpression ) )
+                    {
+                        return null;
+                    }
+                    ifThenElse( context, params );
+                    context.setPropertyResolved( base, methodName );
+                    return base;
 
-            case "whileDo":
-                if ( params.length < 3
-                        || ! ( params[ 0 ] instanceof LambdaExpression )
-                        || ! ( params[ 1 ] instanceof LambdaExpression )
-                        || ! ( params[ 2 ] instanceof Number ) )
-                {
-                    return null;
-                }
-                whileDo( localContext, params );
-                context.setPropertyResolved( base, methodName );
-                return base;
+                case "whileDo":
+                    if ( params.length < 3
+                            || ! ( params[ 0 ] instanceof LambdaExpression )
+                            || ! ( params[ 1 ] instanceof LambdaExpression )
+                            || ! ( params[ 2 ] instanceof Number ) )
+                    {
+                        return null;
+                    }
+                    whileDo( context, params );
+                    context.setPropertyResolved( base, methodName );
+                    return base;
 
-            case "tryExcept":
-                if ( params.length < 2
-                        || ! ( params[ 0 ] instanceof LambdaExpression )
-                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                {
-                    return null;
-                }
-                tryExcept( localContext, params );
-                context.setPropertyResolved( base, methodName );
-                return base;
+                case "tryExcept":
+                    if ( params.length < 2
+                            || ! ( params[ 0 ] instanceof LambdaExpression )
+                            || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                    {
+                        return null;
+                    }
+                    tryExcept( context, params );
+                    context.setPropertyResolved( base, methodName );
+                    return base;
 
+                case "put":
+                    if ( params.length != 2
+                            || ! ( params[ 0 ] instanceof String )
+                            || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                    {
+                        return null;
+                    }
 
-            case "tryExceptFinally":
-                if ( params.length < 3
-                        || ! ( params[ 0 ] instanceof LambdaExpression )
-                        || ! ( params[ 1 ] instanceof LambdaExpression )
-                        || ! ( params[ 2 ] instanceof LambdaExpression )
-                )
-                {
-                    return null;
-                }
-                tryExceptFinally( localContext, params );
-                context.setPropertyResolved( base, methodName );
-                return base;
-
-            case "put":
-                if ( params.length != 2
-                        || ! ( params[ 0 ] instanceof String )
-                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                {
-                    return null;
-                }
-
-                putRunnable( localContext, params, baseMap );
-                context.setPropertyResolved( base, methodName );
-                return base;
+                    putRunnable( context, params, baseMap );
+                    context.setPropertyResolved( base, methodName );
+                    return base;
+            }
+        } finally {
+            scopeStack.get().pop( );
         }
-
 
         return null;
     }
@@ -144,7 +147,6 @@ public class ConditionalMethodsELResolver extends MapELResolver
     public Map< String, Object > newContainer( Map< String, Object > owner )
     {
         MapBindings bindings = new MapBindings( owner );
-        bindings.put( "$local", scopeStack.get().peek() );
         bindings.put( "$self", owner );
         if ( staticMap != null )
         {
@@ -171,41 +173,28 @@ public class ConditionalMethodsELResolver extends MapELResolver
         {
             throw new ELException( "Must have arguments: tryExcept( LambdaExpression, LambdaExpression )" );
         }
-        LambdaExpression ops = ( LambdaExpression ) params[ 0 ];
-        LambdaExpression onEx = ( LambdaExpression ) params[ 1 ];
+        long started = System.currentTimeMillis();
         try
         {
+            LambdaExpression ops = ( LambdaExpression ) params[ 0 ];
             ops.invoke( context );
         }
         catch ( Exception handled )
         {
-            onEx.invoke( context, skipOrRaise( handled ) );
-        }
-    }
-
-    private void tryExceptFinally( ELContext context, Object[] params )
-    {
-        if ( params.length < 3
-                || ! ( params[ 0 ] instanceof LambdaExpression )
-                || ! ( params[ 1 ] instanceof LambdaExpression )
-                || ! ( params[ 2 ] instanceof LambdaExpression ) )
-        {
-            throw new ELException( "Must have arguments: tryExceptFinally( LambdaExpression, LambdaExpression, LambdaExpression )" );
-        }
-        LambdaExpression ops = ( LambdaExpression ) params[ 0 ];
-        LambdaExpression onEx = ( LambdaExpression ) params[ 1 ];
-        LambdaExpression finOps = ( LambdaExpression ) params[ 2 ];
-        try
-        {
-            ops.invoke( context );
-        }
-        catch ( Exception handled )
-        {
+            LambdaExpression onEx = ( LambdaExpression ) params[ 1 ];
             onEx.invoke( context, skipOrRaise( handled ) );
         }
         finally
         {
-            finOps.invoke( context );
+            double durationSeconds = Long
+                    .valueOf( System.currentTimeMillis() - started).doubleValue() / 1000;
+            Optional
+                    .ofNullable(
+                            ( params.length > 2 && params[ 2 ] instanceof LambdaExpression )
+                            ? ( LambdaExpression ) params[ 2 ]
+                            : null
+                    )
+                    .ifPresent( le -> le.invoke( context, durationSeconds ) );
         }
     }
 
@@ -236,6 +225,9 @@ public class ConditionalMethodsELResolver extends MapELResolver
         int maxLoops = ( ( Number ) params[ 2 ] ).intValue();
         int currentLoop = 0;
 
+        test.setELContext( context );
+        ops.setELContext( context );
+
         Optional< LambdaExpression > onTimeout = Optional
                 .ofNullable(
                         ( params.length > 3 && params[ 3 ] instanceof LambdaExpression )
@@ -255,6 +247,8 @@ public class ConditionalMethodsELResolver extends MapELResolver
                     .valueOf( System.currentTimeMillis() - started).doubleValue() / 1000;
 
             onTimeout
+                    .ifPresent( ot -> ot.setELContext( context ) );
+            onTimeout
                     .orElseThrow( () -> new RetriesException( maxLoops, test.toString() ) )
                     .invoke( context, durationSeconds );
         }
@@ -270,15 +264,18 @@ public class ConditionalMethodsELResolver extends MapELResolver
             throw new ELException( "Must have arguments: ifThenElse( LambdaExpression, LambdaExpression, LambdaExpression )" );
         }
         final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
-        final LambdaExpression thenOps = ( LambdaExpression ) params[ 1 ];
-        final LambdaExpression elseOps = ( LambdaExpression ) params[ 2 ];
+        test.setELContext( context );
 
         if ( returnHandlingTest.apply( context, test ) )
         {
+            final LambdaExpression thenOps = ( LambdaExpression ) params[ 1 ];
+            thenOps.setELContext( context );
             thenOps.invoke( context );
         }
         else
         {
+            final LambdaExpression elseOps = ( LambdaExpression ) params[ 2 ];
+            elseOps.setELContext( context );
             elseOps.invoke( context );
         }
     }
@@ -292,10 +289,12 @@ public class ConditionalMethodsELResolver extends MapELResolver
             throw new ELException( "Must have arguments: ifThen( LambdaExpression, LambdaExpression )" );
         }
         final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
-        final LambdaExpression thenOps = ( LambdaExpression ) params[ 1 ];
 
+        test.setELContext( context );
         if ( returnHandlingTest.apply( context, test ) )
         {
+            final LambdaExpression thenOps = ( LambdaExpression ) params[ 1 ];
+            thenOps.setELContext( context );
             thenOps.invoke( context );
         }
     }

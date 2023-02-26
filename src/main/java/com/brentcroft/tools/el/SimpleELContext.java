@@ -2,6 +2,7 @@ package com.brentcroft.tools.el;
 
 import jakarta.el.*;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 
@@ -14,15 +15,17 @@ class SimpleELContext extends ELContext
     protected final VariableMapper variableMapper;
 
     @Getter
-    protected final Map< ?, ? > rootObjects;
+    @Setter
+    protected Map< ?, ? > rootObjects;
 
+    protected SimpleELContextFactory simpleELContextFactory;
     protected ELResolver resolver;
-
     private final ImportHandler importHandler;
 
     public SimpleELContext( SimpleELContextFactory simpleELContextFactory, Map< ?, ? > rootObjects, EvaluationListener... listeners )
     {
         this.rootObjects = rootObjects;
+        this.simpleELContextFactory = simpleELContextFactory;
         this.functionMapper = simpleELContextFactory.newFunctionMapper();
         this.variableMapper = SimpleELContextFactory.newVariableMapper();
         this.resolver = simpleELContextFactory.newResolver( rootObjects );
@@ -45,5 +48,34 @@ class SimpleELContext extends ELContext
             return super.getImportHandler();
         }
         return importHandler;
+    }
+
+    public ELContext getChildContext(Map< ?, ? > rootObjects)
+    {
+        return new ELContext() {
+            private final ELResolver resolver = simpleELContextFactory.newResolver( rootObjects );
+
+            @Override
+            public ELResolver getELResolver()
+            {
+                return resolver;
+            }
+
+            @Override
+            public FunctionMapper getFunctionMapper()
+            {
+                return functionMapper;
+            }
+
+            @Override
+            public VariableMapper getVariableMapper()
+            {
+                return variableMapper;
+            }
+
+            public ImportHandler getImportHandler() {
+                return SimpleELContext.this.getImportHandler();
+            }
+        };
     }
 }

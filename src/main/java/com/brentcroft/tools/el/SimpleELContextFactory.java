@@ -74,7 +74,6 @@ public class SimpleELContextFactory implements ELContextFactory
 
     public ELContext getELContext( Map< ?, ? > rootObjects, SimpleELContext parent )
     {
-        parent.getRootObjects();
         return new SimpleELContext( this, rootObjects, listeners );
     }
 
@@ -135,6 +134,7 @@ public class SimpleELContextFactory implements ELContextFactory
         {
             resolver.add( customSecondaryResolvers );
         }
+        resolver.add( new MapMethodELResolver());
         resolver.add( new StreamELResolver() );
         resolver.add( new StaticFieldELResolver() );
         resolver.add( new ArrayELResolver() );

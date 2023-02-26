@@ -3,23 +3,19 @@ package com.brentcroft.tools.el;
 import com.brentcroft.tools.jstl.MapBindings;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
-import jakarta.el.LambdaExpression;
 import jakarta.el.MapELResolver;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
 
 import static java.lang.String.format;
 
-public class ThreadLocalStackELResolver extends MapELResolver
+public class MapStepsELResolver extends MapELResolver
 {
-    private final ThreadLocal< Stack< Map< String, Object > > > scopeStack;
     private final Evaluator evaluator;
     private final TextExpander expander;
     private final Map< String, Object > staticMap;
 
-    public ThreadLocalStackELResolver( TextExpander expander, Evaluator evaluator, ThreadLocal< Stack< Map< String, Object > > > scopeStack, Map< String, Object > staticMap )
+    public MapStepsELResolver( TextExpander expander, Evaluator evaluator, Map< String, Object > staticMap )
     {
         if ( expander == null )
         {
@@ -29,37 +25,12 @@ public class ThreadLocalStackELResolver extends MapELResolver
         {
             throw new IllegalArgumentException( "Evaluator must not be null" );
         }
-        if ( scopeStack == null )
-        {
-            throw new IllegalArgumentException( "ThreadLocalStack must not be null" );
-        }
         this.expander = expander;
         this.evaluator = evaluator;
-        this.scopeStack = scopeStack;
         this.staticMap = staticMap;
     }
 
-    @Override
-    public Object getValue( ELContext context, Object base, Object property )
-    {
-        if ( base == null )
-        {
-            base = scopeStack.get().peek();
-        }
-        if ( context == null )
-        {
-            throw new NullPointerException();
-        }
-        if ( base instanceof Map && ( ( Map< ?, ? > ) base ).containsKey( property ) )
-        {
-            context.setPropertyResolved( base, property );
-            Map< ?, ? > map = ( Map< ?, ? > ) base;
-            return map.get( property );
-        }
-
-        return null;
-    }
-
+    @SuppressWarnings( "unchecked" )
     public Object invoke( ELContext context, Object base, Object methodName, Class< ? >[] paramTypes, Object[] params )
     {
         if ( base == null || methodName == null )
@@ -73,24 +44,9 @@ public class ThreadLocalStackELResolver extends MapELResolver
 
         @SuppressWarnings( "unchecked" )
         Map< String, Object > root = ( Map< String, Object > ) base;
-
-        String runnableKey = format( "%s", methodName );
-        if ( root.containsKey( runnableKey ) )
-        {
-            Object runnable = root.get( runnableKey );
-            if ( runnable instanceof LambdaExpression )
-            {
-                Object result = ( ( LambdaExpression ) runnable ).invoke( context, params );
-                context.setPropertyResolved( base, methodName );
-                return result;
-            }
-            else if ( runnable instanceof Runnable )
-            {
-                ( ( Runnable ) runnable ).run();
-                context.setPropertyResolved( base, methodName );
-                return null;
-            }
-        }
+        Map< String, Object > args = (params != null && params.length > 0 && params[0] instanceof Map )
+            ? (Map<String,Object>) params[0]
+            : null;
 
         String stepsKey = format( "$$%s", methodName );
 
@@ -106,23 +62,20 @@ public class ThreadLocalStackELResolver extends MapELResolver
 
         String steps = format( "%s", root.get( stepsKey ) );
 
-        @SuppressWarnings( "unchecked" )
-        Map< String, Object > scope =
-                params != null && params.length > 0
-                ? ( Map< String, Object > ) params[ 0 ]
-                : new HashMap<>();
-
+        Map< String, Object > scope = newContainer( root );
         scope.put( "$functionName", stepsKey );
 
-        scopeStack.get().push( scope );
+        if (args != null ) {
+            scope.putAll(args);
+        }
+
         try
         {
-            Map< String, Object > container = newContainer( root );
             Object[] lastResult = { null };
             Evaluator
                     .stepsStream( steps )
-                    .map( step -> expander.expandText( step, container ) )
-                    .forEachOrdered( step -> lastResult[ 0 ] = evaluator.eval( step, container ) );
+                    .map( step -> expander.expandText( step, scope ) )
+                    .forEachOrdered( step -> lastResult[ 0 ] = evaluator.eval( step, scope ) );
             Object ret = lastResult[ 0 ];
             context.setPropertyResolved( base, methodName );
             return ret;
@@ -149,16 +102,12 @@ public class ThreadLocalStackELResolver extends MapELResolver
 
             throw e;
         }
-        finally
-        {
-            scopeStack.get().pop();
-        }
     }
 
     public Map< String, Object > newContainer( Map< String, Object > root )
     {
         MapBindings bindings = new MapBindings( root );
-        bindings.put( "$local", scopeStack.get().peek() );
+        bindings.put( "$local", bindings );
         bindings.put( "$self", root );
         if ( root instanceof Parented )
         {
