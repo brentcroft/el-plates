@@ -387,9 +387,7 @@ public enum JstlTag
                 {
                     return new JstlScript(
                             templateHandler,
-                            getAttributeValue( attributes, "public", "true", Boolean.class ),
-                            getAttributeValue( attributes, "render", "false", Boolean.class ),
-                            getAttributeValueNotEmpty( attributes, "engine", "js", String.class )
+                            getAttributeValue( attributes, "render", "false", Boolean.class )
                     );
                 }
             };

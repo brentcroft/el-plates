@@ -1,8 +1,8 @@
 package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.jstl.MapBindings;
-import com.brentcroft.tools.model.AbstractModelItem;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.file.Paths;
@@ -18,6 +18,8 @@ import static org.junit.Assert.assertTrue;
 public class ConditionalMethodsTest
 {
     private final ModelItem item = new ModelItem();
+    private final ELTemplateManager el = new ELTemplateManager();
+    private final Map< String, Object > staticMap = new HashMap<>();
 
     @Before
     public void setCurrentDirectory() {
@@ -25,19 +27,12 @@ public class ConditionalMethodsTest
         item.getStaticModel().clear();
     }
 
-    private final ELTemplateManager el = new ELTemplateManager();
-    private final Map< String, Object > staticMap = new HashMap<>();
-
-
     @Test
     public void test_thread_local_resolver()
     {
         Stack< Map< String, Object > > stack = new Stack<>();
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
-        el.addPrimaryResolvers( new ConditionalMethodsELResolver(
-                el.getELContextFactory(),
-                scopeStack,
-                staticMap) );
+        el.addPrimaryResolvers( new ConditionalMethodsELResolver( scopeStack, staticMap) );
 
         MapBindings scope = new MapBindings()
                 .withEntry( "colors", new MapBindings()
@@ -69,7 +64,7 @@ public class ConditionalMethodsTest
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
         MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el, staticMap );
         el.addPrimaryResolvers( tlsELResolver );
-        el.addSecondaryResolvers( new ConditionalMethodsELResolver( el.getELContextFactory(), scopeStack, staticMap ) );
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack, staticMap ) );
 
         MapBindings bindings = new MapBindings()
                 .withEntry( "colors", new MapBindings()
@@ -95,7 +90,7 @@ public class ConditionalMethodsTest
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
         MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el, null );
         el.addPrimaryResolvers( tlsELResolver );
-        el.addSecondaryResolvers( new ConditionalMethodsELResolver( el.getELContextFactory(), scopeStack, staticMap ) );
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack, staticMap ) );
 
         MapBindings bindings = new MapBindings().withEntry( "colors", new MapBindings() );
 
@@ -116,10 +111,6 @@ public class ConditionalMethodsTest
     @Test
     public void test_thread_local_resolver_steps()
     {
-        Stack< Map< String, Object > > stack = new Stack<>();
-        stack.push( new HashMap<>() );
-
-        ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
         MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el, staticMap );
         el.addPrimaryResolvers( tlsELResolver );
 
@@ -162,7 +153,6 @@ public class ConditionalMethodsTest
         Stack< Map< String, Object > > stack = new Stack<>();
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
         el.addPrimaryResolvers( new ConditionalMethodsELResolver(
-                el.getELContextFactory(),
                 scopeStack,
                 staticMap) );
 
@@ -213,7 +203,7 @@ public class ConditionalMethodsTest
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
         MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el, staticMap );
         el.addPrimaryResolvers( tlsELResolver );
-        el.addSecondaryResolvers( new ConditionalMethodsELResolver( el.getELContextFactory(), scopeStack, staticMap ) );
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack, staticMap ) );
 
         MapBindings modelScope = new MapBindings()
                 .withEntry( "a", new MapBindings()
@@ -247,7 +237,7 @@ public class ConditionalMethodsTest
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
         MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el, staticMap );
         el.addPrimaryResolvers( tlsELResolver );
-        el.addSecondaryResolvers( new ConditionalMethodsELResolver( el.getELContextFactory(), scopeStack, staticMap ) );
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack, staticMap ) );
 
         MapBindings modelScope = new MapBindings()
                 .withEntry( "a", new MapBindings()
@@ -276,7 +266,7 @@ public class ConditionalMethodsTest
         MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el, staticMap );
         el.addPrimaryResolvers( tlsELResolver );
 
-        el.addSecondaryResolvers( new ConditionalMethodsELResolver( el.getELContextFactory(), scopeStack, staticMap ) );
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack, staticMap ) );
 
         el.addListeners( new SimpleEvaluationListener() );
 

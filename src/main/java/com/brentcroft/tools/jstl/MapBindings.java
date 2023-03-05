@@ -2,7 +2,10 @@ package com.brentcroft.tools.jstl;
 
 
 import com.brentcroft.tools.el.Parented;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.script.Bindings;
 import java.util.LinkedHashMap;
@@ -16,23 +19,13 @@ import java.util.Map;
  * @author ADobson
  */
 @Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class MapBindings extends LinkedHashMap< String, Object > implements Bindings, Parented
 {
     private static final long serialVersionUID = 8422258558562588221L;
-
     private Map< String, Object > parent;
-
-
-    public MapBindings( Map< String, Object > parent )
-    {
-        this.parent = parent;
-    }
-
-    public MapBindings()
-    {
-        this( null );
-    }
-
 
     /**
      * Copies all entries from this MapBindings into the specified target.
@@ -78,12 +71,6 @@ public class MapBindings extends LinkedHashMap< String, Object > implements Bind
     public boolean containsKey( Object a )
     {
         return super.containsKey( a ) || parent != null && parent.containsKey( a );
-    }
-
-    public MapBindings withParent( Map< String, Object > parent )
-    {
-        this.parent = parent;
-        return this;
     }
 
     public MapBindings withEntry( String name, Object value )

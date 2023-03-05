@@ -16,6 +16,8 @@ public interface Evaluator
                 .map( String::trim )
                 .collect( Collectors.joining(" "));
         return Stream
-                .of(uncommented.split( "\\s*[;]+\\s*" ));
+                .of(uncommented.split( "\\s*[;]+\\s*" ))
+                .map( String::trim )
+                .filter( v -> !v.isEmpty() );
     }
 }

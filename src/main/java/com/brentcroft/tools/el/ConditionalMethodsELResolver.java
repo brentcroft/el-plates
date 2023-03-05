@@ -15,7 +15,6 @@ import java.util.function.BiFunction;
 @AllArgsConstructor
 public class ConditionalMethodsELResolver extends MapELResolver
 {
-    private ELContextFactory contextFactory;
     private final ThreadLocal< Stack< Map< String, Object > > > scopeStack;
     private final Map< String, Object > staticMap;
 
@@ -225,9 +224,6 @@ public class ConditionalMethodsELResolver extends MapELResolver
         int maxLoops = ( ( Number ) params[ 2 ] ).intValue();
         int currentLoop = 0;
 
-        test.setELContext( context );
-        ops.setELContext( context );
-
         Optional< LambdaExpression > onTimeout = Optional
                 .ofNullable(
                         ( params.length > 3 && params[ 3 ] instanceof LambdaExpression )
@@ -236,21 +232,19 @@ public class ConditionalMethodsELResolver extends MapELResolver
                 );
 
         long started = System.currentTimeMillis();
-        while ( returnHandlingTest.apply( context, test ) && maxLoops > currentLoop )
+        while ( returnHandlingTest.apply( context, test ) )
         {
             currentLoop++;
-            ops.invoke( context );
-        }
-        if ( currentLoop >= maxLoops )
-        {
-            double durationSeconds = Long
-                    .valueOf( System.currentTimeMillis() - started).doubleValue() / 1000;
-
-            onTimeout
-                    .ifPresent( ot -> ot.setELContext( context ) );
-            onTimeout
-                    .orElseThrow( () -> new RetriesException( maxLoops, test.toString() ) )
-                    .invoke( context, durationSeconds );
+            if ( currentLoop > maxLoops )
+            {
+                double durationSeconds = Long
+                        .valueOf( System.currentTimeMillis() - started).doubleValue() / 1000;
+                onTimeout
+                        .orElseThrow( () -> new RetriesException( maxLoops, test.toString() ) )
+                        .invoke( context, durationSeconds );
+                return;
+            }
+            ops.invoke( context, currentLoop );
         }
     }
 
@@ -264,18 +258,14 @@ public class ConditionalMethodsELResolver extends MapELResolver
             throw new ELException( "Must have arguments: ifThenElse( LambdaExpression, LambdaExpression, LambdaExpression )" );
         }
         final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
-        test.setELContext( context );
-
         if ( returnHandlingTest.apply( context, test ) )
         {
             final LambdaExpression thenOps = ( LambdaExpression ) params[ 1 ];
-            thenOps.setELContext( context );
             thenOps.invoke( context );
         }
         else
         {
             final LambdaExpression elseOps = ( LambdaExpression ) params[ 2 ];
-            elseOps.setELContext( context );
             elseOps.invoke( context );
         }
     }
@@ -289,12 +279,9 @@ public class ConditionalMethodsELResolver extends MapELResolver
             throw new ELException( "Must have arguments: ifThen( LambdaExpression, LambdaExpression )" );
         }
         final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
-
-        test.setELContext( context );
         if ( returnHandlingTest.apply( context, test ) )
         {
             final LambdaExpression thenOps = ( LambdaExpression ) params[ 1 ];
-            thenOps.setELContext( context );
             thenOps.invoke( context );
         }
     }

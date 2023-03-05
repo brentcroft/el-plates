@@ -101,6 +101,7 @@ public class JstlChoose extends AbstractJstlElement
     {
         if ( element.hasChildNodes() )
         {
+            @SuppressWarnings("unchecked")
             List< Element > items = ( List< Element > ) element.getUserData( "ITEMS" );
 
             if ( isNull( items ) )

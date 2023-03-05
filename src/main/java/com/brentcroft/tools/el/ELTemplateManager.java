@@ -113,7 +113,7 @@ public class ELTemplateManager implements TextExpander, Evaluator
         elContextFactory.setListeners( listeners );
     }
 
-    private ExpressionFactory getExpressionFactory()
+    public ExpressionFactory getExpressionFactory()
     {
         if ( expressionFactory != null )
         {

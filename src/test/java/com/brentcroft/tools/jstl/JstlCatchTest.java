@@ -2,6 +2,7 @@ package com.brentcroft.tools.jstl;
 
 
 import com.brentcroft.tools.jstl.tag.TagMessages;
+import jakarta.el.ELException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -138,9 +139,9 @@ public class JstlCatchTest
     public void test_CATCH_ExposesException()
     {
         final String[][] samples = {
-                {"<c:catch><c:script>throw new java.lang.RuntimeException( 'whoops' )</c:script></c:catch>", "caughtException"},
-                {"<c:catch var='alfredo'><c:script>throw new java.lang.RuntimeException( 'whoops' )</c:script></c:catch>", "alfredo"},
-                {"<c:catch var='fred bloggs'><c:script>throw new java.lang.RuntimeException( 'whoops' )</c:script></c:catch>", "fred bloggs"}
+                {"<c:catch><c:script>c:raise( 'whoops' )</c:script></c:catch>", "caughtException"},
+                {"<c:catch var='alfredo'><c:script>c:raise( 'whoops' )</c:script></c:catch>", "alfredo"},
+                {"<c:catch var='fred bloggs'><c:script>c:raise( 'whoops' )</c:script></c:catch>", "fred bloggs"}
         };
 
         for ( String[] sample : samples )
@@ -149,7 +150,7 @@ public class JstlCatchTest
 
             jstl.expandText( sample[ 0 ], fred );
 
-            Assert.assertEquals( RuntimeException.class, fred.get( sample[ 1 ] ).getClass() );
+            Assert.assertEquals( ELException.class, fred.get( sample[ 1 ] ).getClass() );
         }
     }
 }
