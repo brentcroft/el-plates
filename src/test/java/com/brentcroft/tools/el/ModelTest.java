@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.file.Paths;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -48,5 +49,24 @@ public class ModelTest
     public void testHierarchyConditionals() {
         item.appendFromJson( "{ '$xml': 'model-03-hierarchy.xml' }" );
         item.eval("$self.testHierarchyConditionals()" );
+    }
+
+
+    @Test
+    public void localModelStaticScopes()
+    {
+        item.steps( "$static.vegetable = 'cabbage'" );
+        assertEquals( "cabbage", item.eval( "vegetable" ) );
+
+        item.steps( "$static.vegetable = 'cabbage'; $self.vegetable = 'turnip'" );
+        assertEquals( "turnip", item.eval( "vegetable" ) );
+
+        assertEquals( "cabbage", new ModelItem().eval( "vegetable" ) );
+
+        Object result = item.steps( "$local.vegetable = 'chard'; $self.vegetable = 'cabbage'; vegetable" );
+        assertEquals( "chard", result );
+        assertEquals( "cabbage", item.eval( "vegetable" ) );
+
+        assertEquals( "cabbage", new ModelItem().eval( "vegetable" ) );
     }
 }

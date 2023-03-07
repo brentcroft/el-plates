@@ -43,7 +43,6 @@ public class ModelItem extends AbstractModelItem implements Parented
     public Map< String, Object > newContainer()
     {
         MapBindings bindings = new MapBindings( this );
-        bindings.put( "$local", AbstractModelItem.scopeStack.get().peek() );
         bindings.put( "$self", this );
         bindings.put( "$parent", getParent() );
         bindings.put( "$static", AbstractModelItem.staticModel );

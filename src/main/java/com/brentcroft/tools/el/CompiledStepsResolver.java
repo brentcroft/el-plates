@@ -1,9 +1,7 @@
 package com.brentcroft.tools.el;
 
-import com.brentcroft.tools.jstl.MapBindings;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
-import jakarta.el.MapELResolver;
 import jakarta.el.ValueExpression;
 import lombok.AllArgsConstructor;
 
@@ -13,7 +11,7 @@ import java.util.Stack;
 import static java.lang.String.format;
 
 @AllArgsConstructor
-public class CompiledStepsResolver extends MapELResolver
+public class CompiledStepsResolver extends BaseELResolver
 {
     private final ThreadLocal< Stack< Map< String, Object > > > scopeStack;
 
@@ -92,17 +90,5 @@ public class CompiledStepsResolver extends MapELResolver
         {
             scopeStack.get().pop();
         }
-    }
-
-    public Map< String, Object > newContainer( Map< String, Object > root )
-    {
-        MapBindings bindings = new MapBindings( root );
-        bindings.put( "$local", bindings );
-        bindings.put( "$self", root );
-        if ( root instanceof Parented )
-        {
-            bindings.put( "$parent", ( ( Parented ) root ).getParent() );
-        }
-        return bindings;
     }
 }

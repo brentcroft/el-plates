@@ -17,6 +17,12 @@ public class ThreadLocalRootResolver extends BaseELResolver
         if (base != null || property == null || scopeStack.get().isEmpty()) {
             return null;
         }
+
+        if ("$local".equals( property ) && !scopeStack.get().isEmpty()) {
+            context.setPropertyResolved( null, property );
+            return scopeStack.get().peek();
+        }
+
         final Stack<Map< String, Object >> stack = scopeStack.get();
         final String key = property.toString();
         for (int i = stack.size() - 1; i >= 0; i--) {

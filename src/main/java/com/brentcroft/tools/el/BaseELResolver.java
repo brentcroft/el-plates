@@ -50,7 +50,6 @@ public class BaseELResolver extends ELResolver
     public Map< String, Object > newContainer( Map< String, Object > root )
     {
         MapBindings bindings = new MapBindings( root );
-        bindings.put( "$local", bindings );
         bindings.put( "$self", root );
         if ( root instanceof Parented )
         {
