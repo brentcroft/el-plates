@@ -2,7 +2,6 @@ package com.brentcroft.tools.el;
 
 import jakarta.el.ELContext;
 import jakarta.el.LambdaExpression;
-import jakarta.el.MapELResolver;
 import lombok.AllArgsConstructor;
 
 import java.util.Map;
@@ -10,7 +9,7 @@ import java.util.Map;
 import static java.lang.String.format;
 
 @AllArgsConstructor
-public class MapMethodELResolver extends MapELResolver
+public class MapMethodELResolver extends BaseELResolver
 {
     public Object invoke( ELContext context, Object base, Object methodName, Class< ? >[] paramTypes, Object[] params )
     {

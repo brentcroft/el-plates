@@ -10,14 +10,14 @@ import java.util.Map;
 
 @Getter
 @Setter
-@AllArgsConstructor
 public class SimpleELResolver extends CompositeELResolver
 {
     private Map< ?, ? > rootObjects;
-    private CompositeELResolver customPrimaryResolvers;
-    private CompositeELResolver customSecondaryResolvers;
 
-    public SimpleELResolver() {
+    public SimpleELResolver( Map<?,?> rootObjects, CompositeELResolver customPrimaryResolvers, CompositeELResolver customSecondaryResolvers )
+    {
+        this.rootObjects= rootObjects;
+
         // eg: thread local stack
         if ( customPrimaryResolvers != null )
         {
@@ -32,7 +32,6 @@ public class SimpleELResolver extends CompositeELResolver
             add( customSecondaryResolvers );
         }
 
-        add( new MapMethodELResolver());
         add( new StreamELResolver() );
         add( new StaticFieldELResolver() );
         add( new ArrayELResolver() );

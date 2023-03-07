@@ -1,18 +1,21 @@
 package com.brentcroft.tools.el;
 
+import com.brentcroft.tools.jstl.MapBindings;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
+import jakarta.el.MapELResolver;
+import jakarta.el.ValueExpression;
 import lombok.AllArgsConstructor;
 
 import java.util.Map;
+import java.util.Stack;
 
 import static java.lang.String.format;
 
 @AllArgsConstructor
-public class MapStepsELResolver extends BaseELResolver
+public class CompiledStepsResolver extends MapELResolver
 {
-    private final Evaluator evaluator;
-    private final TextExpander expander;
+    private final ThreadLocal< Stack< Map< String, Object > > > scopeStack;
 
     @SuppressWarnings( "unchecked" )
     public Object invoke( ELContext context, Object base, Object methodName, Class< ? >[] paramTypes, Object[] params )
@@ -28,11 +31,11 @@ public class MapStepsELResolver extends BaseELResolver
 
         @SuppressWarnings( "unchecked" )
         Map< String, Object > root = ( Map< String, Object > ) base;
-        Map< String, Object > args = (params != null && params.length > 0 && params[0] instanceof Map )
-            ? (Map<String,Object>) params[0]
-            : null;
+        Map< String, Object > args = ( params != null && params.length > 0 && params[ 0 ] instanceof Map )
+                                     ? ( Map< String, Object > ) params[ 0 ]
+                                     : null;
 
-        String stepsKey = format( "$$%s", methodName );
+        String stepsKey = format( "$$$%s", methodName );
 
         if ( ! root.containsKey( stepsKey ) )
         {
@@ -41,27 +44,25 @@ public class MapStepsELResolver extends BaseELResolver
 
         if ( params != null && params.length > 0 && ! ( params[ 0 ] instanceof Map ) )
         {
-            throw new IllegalArgumentException( "Steps call must have one argument that is a map, or no argument at all" );
+            throw new IllegalArgumentException( "Compiled Steps call must have one argument that is a map, or no argument at all" );
         }
 
         Map< String, Object > scope = newContainer( root );
 
-        String steps = format( "%s", root.get( stepsKey ) );
+        ValueExpression steps = ( ValueExpression ) root.get( stepsKey );
 
         scope.put( "$functionName", stepsKey );
 
-        if (args != null ) {
-            scope.putAll(args);
+        if ( args != null )
+        {
+            scope.putAll( args );
         }
+
+        scopeStack.get().push( scope );
 
         try
         {
-            Object[] lastResult = { null };
-            Evaluator
-                    .stepsStream( steps )
-                    .map( step -> expander.expandText( step, scope ) )
-                    .forEachOrdered( step -> lastResult[ 0 ] = evaluator.eval( step, scope ) );
-            Object ret = lastResult[ 0 ];
+            Object ret = steps.getValue( context );
             context.setPropertyResolved( base, methodName );
             return ret;
 
@@ -87,5 +88,21 @@ public class MapStepsELResolver extends BaseELResolver
 
             throw e;
         }
+        finally
+        {
+            scopeStack.get().pop();
+        }
+    }
+
+    public Map< String, Object > newContainer( Map< String, Object > root )
+    {
+        MapBindings bindings = new MapBindings( root );
+        bindings.put( "$local", bindings );
+        bindings.put( "$self", root );
+        if ( root instanceof Parented )
+        {
+            bindings.put( "$parent", ( ( Parented ) root ).getParent() );
+        }
+        return bindings;
     }
 }

@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import java.util.Map;
 
 @AllArgsConstructor
-public class SimpleMapELResolver extends MapELResolver
+public class SimpleMapELResolver extends BaseELResolver
 {
     private final Map< ?, ? > rootObjects;
 

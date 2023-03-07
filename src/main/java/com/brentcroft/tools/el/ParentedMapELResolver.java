@@ -36,4 +36,27 @@ public class ParentedMapELResolver extends MapELResolver
 
         return null;
     }
+
+    @Override
+    public Class<?> getType(ELContext context, Object base, Object property) {
+        if (context == null) {
+            throw new NullPointerException();
+        }
+
+        if ( base instanceof Map ) {
+            context.setPropertyResolved(true);
+            return Object.class;
+        }
+
+        return null;
+    }
+
+    @Override
+    public Class<?> getCommonPropertyType(ELContext context, Object base) {
+        if ( base instanceof Map ) {
+            return Object.class;
+        }
+
+        return null;
+    }
 }

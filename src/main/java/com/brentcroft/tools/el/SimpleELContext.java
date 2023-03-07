@@ -49,33 +49,4 @@ class SimpleELContext extends ELContext
         }
         return importHandler;
     }
-
-    public ELContext getChildContext(Map< ?, ? > rootObjects)
-    {
-        return new ELContext() {
-            private final ELResolver resolver = simpleELContextFactory.newResolver( rootObjects );
-
-            @Override
-            public ELResolver getELResolver()
-            {
-                return resolver;
-            }
-
-            @Override
-            public FunctionMapper getFunctionMapper()
-            {
-                return functionMapper;
-            }
-
-            @Override
-            public VariableMapper getVariableMapper()
-            {
-                return variableMapper;
-            }
-
-            public ImportHandler getImportHandler() {
-                return SimpleELContext.this.getImportHandler();
-            }
-        };
-    }
 }

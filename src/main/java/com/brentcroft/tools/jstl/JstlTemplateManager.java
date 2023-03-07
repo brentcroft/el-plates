@@ -6,6 +6,7 @@ import com.brentcroft.tools.el.TextExpander;
 import com.brentcroft.tools.jstl.tag.JstlElement;
 import com.brentcroft.tools.jstl.tag.TagHandler;
 import com.brentcroft.tools.jstl.tag.TagMessages;
+import jakarta.el.ValueExpression;
 import lombok.extern.java.Log;
 
 import java.io.File;
@@ -136,6 +137,17 @@ public class JstlTemplateManager implements TextExpander
         return getELTemplateManager().eval( elExpression,rootObjects );
     }
 
+
+    /**
+     * Compiles the supplied <code>EL</code> expression and returns the result.
+     *
+     * @param elExpression    the EL expression to be compiled
+     * @return the compiled EL
+     */
+    public ValueExpression compile( String elExpression )
+    {
+        return getELTemplateManager().compile( elExpression );
+    }
 
     /**
      * Find a template and return it's rendering of a Map by the template.

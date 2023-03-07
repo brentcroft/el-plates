@@ -1,8 +1,8 @@
 package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.jstl.MapBindings;
+import com.brentcroft.tools.model.ModelItem;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.file.Paths;
@@ -19,10 +19,10 @@ public class ConditionalMethodsTest
 {
     private final ModelItem item = new ModelItem();
     private final ELTemplateManager el = new ELTemplateManager();
-    private final Map< String, Object > staticMap = new HashMap<>();
 
     @Before
-    public void setCurrentDirectory() {
+    public void setCurrentDirectory()
+    {
         item.setCurrentDirectory( Paths.get( "src/test/resources/models" ) );
         item.getStaticModel().clear();
     }
@@ -31,8 +31,9 @@ public class ConditionalMethodsTest
     public void test_thread_local_resolver()
     {
         Stack< Map< String, Object > > stack = new Stack<>();
-        ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
-        el.addPrimaryResolvers( new ConditionalMethodsELResolver( scopeStack, staticMap) );
+        stack.push( new HashMap<>() );
+
+        el.addPrimaryResolvers( new ThreadLocalRootResolver( ThreadLocal.withInitial( () -> stack ) ) );
 
         MapBindings scope = new MapBindings()
                 .withEntry( "colors", new MapBindings()
@@ -62,9 +63,9 @@ public class ConditionalMethodsTest
         stack.push( new HashMap<>() );
 
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
-        MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el, staticMap );
+        MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el );
         el.addPrimaryResolvers( tlsELResolver );
-        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack, staticMap ) );
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack ) );
 
         MapBindings bindings = new MapBindings()
                 .withEntry( "colors", new MapBindings()
@@ -88,21 +89,25 @@ public class ConditionalMethodsTest
         stack.push( new HashMap<>() );
 
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
-        MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el, null );
-        el.addPrimaryResolvers( tlsELResolver );
-        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack, staticMap ) );
+        el.addPrimaryResolvers(
+                new MapMethodELResolver()
+        );
+        el.addSecondaryResolvers(
+                new CompiledStepsResolver( scopeStack ),
+                new ConditionalMethodsELResolver( scopeStack ),
+                new MapStepsELResolver( el, el ) );
 
         MapBindings bindings = new MapBindings().withEntry( "colors", new MapBindings() );
 
-        el.eval( "colors.time = 10; colors.whileDo(()-> time < 20, () -> ($self.time = time + 1 ), 12 )", bindings );
+        el.eval( "colors.time = 10; colors.whileDo( ()-> colors.time < 20, () -> (colors.time = colors.time + 1 ), 12 )", bindings );
         assertEquals( 20L, el.eval( "colors.time", bindings ) );
 
-        el.eval( "colors.whileDo( () -> true, () -> c:delay(500), 1, ( s ) -> ( $self.timeWaiting = s ) )", bindings );
+        el.eval( "colors.whileDo( () -> true, () -> c:delay(500), 1, ( s ) -> ( timeWaiting = s ) )", bindings );
 
-        Double timeWaiting = (Double)el.eval( "colors.timeWaiting", bindings );
+        Double timeWaiting = ( Double ) el.eval( "colors.timeWaiting", bindings );
 
         assertTrue(
-                format("Time waiting is too large: %s", timeWaiting),
+                format( "Time waiting is too large: %s", timeWaiting ),
                 Math.abs( 0.5 - timeWaiting ) < 0.1
         );
     }
@@ -111,7 +116,7 @@ public class ConditionalMethodsTest
     @Test
     public void test_thread_local_resolver_steps()
     {
-        MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el, staticMap );
+        MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el );
         el.addPrimaryResolvers( tlsELResolver );
 
         MapBindings scope = new MapBindings()
@@ -150,14 +155,20 @@ public class ConditionalMethodsTest
     @Test
     public void test_scope_precedence()
     {
-        Stack< Map< String, Object > > stack = new Stack<>();
-        ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
-        el.addPrimaryResolvers( new ConditionalMethodsELResolver(
-                scopeStack,
-                staticMap) );
+        MapBindings staticScope = new MapBindings()
+                .withEntry( "color1", "green" )
+                .withEntry( "color2", "blue" )
+                .withEntry( "color3", "red" );
 
         MapBindings stackScope = new MapBindings()
                 .withEntry( "color1", "blue" );
+
+        Stack< Map< String, Object > > stack = new Stack<>();
+        stack.push( stackScope );
+
+        ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
+        el.addPrimaryResolvers( new ThreadLocalRootResolver( scopeStack ) );
+        el.addSecondaryResolvers( new SimpleMapELResolver( staticScope ) );
 
         MapBindings modelScope = new MapBindings()
                 .withEntry( "color1", "yellow" )
@@ -167,31 +178,14 @@ public class ConditionalMethodsTest
                         .withEntry( "color1", "puce" )
                         .withEntry( "color2", "purple" )
                 );
-        MapBindings staticScope = new MapBindings()
-                .withEntry( "color1", "green" )
-                .withEntry( "color2", "blue" )
-                .withEntry( "color3", "red" );
 
-        ParentedMapELResolver staticResolver = new ParentedMapELResolver( staticScope );
+        assertEquals( "blue", el.eval( "color1", modelScope ) );
+        assertEquals( "orange", el.eval( "color2", modelScope ) );
+        assertEquals( "red", el.eval( "color3", modelScope ) );
 
-        el.addSecondaryResolvers( staticResolver );
-
-        stack.push( stackScope );
-
-        try
-        {
-            assertEquals( "blue", el.eval( "color1", modelScope ) );
-            assertEquals( "orange", el.eval( "color2", modelScope ) );
-            assertEquals( "red", el.eval( "color3", modelScope ) );
-
-            assertEquals( "puce", el.eval( "level2.color1", modelScope ) );
-            assertEquals( "purple", el.eval( "level2.color2", modelScope ) );
-            assertEquals( "vermillion", el.eval( "level2.color9", modelScope ) );
-        }
-        finally
-        {
-            stack.pop();
-        }
+        assertEquals( "puce", el.eval( "level2.color1", modelScope ) );
+        assertEquals( "purple", el.eval( "level2.color2", modelScope ) );
+        assertEquals( "vermillion", el.eval( "level2.color9", modelScope ) );
     }
 
     @Test
@@ -201,9 +195,9 @@ public class ConditionalMethodsTest
         stack.push( new HashMap<>() );
 
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
-        MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el, staticMap );
+        MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el );
         el.addPrimaryResolvers( tlsELResolver );
-        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack, staticMap ) );
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack ) );
 
         MapBindings modelScope = new MapBindings()
                 .withEntry( "a", new MapBindings()
@@ -235,25 +229,28 @@ public class ConditionalMethodsTest
         stack.push( new HashMap<>() );
 
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
-        MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el, staticMap );
-        el.addPrimaryResolvers( tlsELResolver );
-        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack, staticMap ) );
+        el.addPrimaryResolvers(
+                new MapMethodELResolver()
+        );
+        el.addSecondaryResolvers(
+                new CompiledStepsResolver( scopeStack ),
+                new ConditionalMethodsELResolver( scopeStack ),
+                new MapStepsELResolver( el, el ) );
 
         MapBindings modelScope = new MapBindings()
                 .withEntry( "a", new MapBindings()
-                                .withEntry(
-                                        "$$testPutRunnables",
-                                        "$self.put( 'xxx', () -> c:println('hello from put runnable') );\n" +
-                                              "$self.shout = ( message ) -> c:println( message );")
+                        .withEntry(
+                                "$$testPutRunnables",
+                                "$self.put( 'xxx', () -> c:println('hello from put runnable') );\n" +
+                                        "$self.shout = ( message ) -> c:println( message );" )
                 );
 
         // put the runnable
-        el.eval("a.testPutRunnables()", modelScope);
-        el.eval("a.xxx.run()", modelScope);
-        el.eval("a.xxx()", modelScope);
-        el.eval("a.shout( 'out loud' )", modelScope);
+        el.eval( "a.testPutRunnables()", modelScope );
+        el.eval( "a.xxx.run()", modelScope );
+        el.eval( "a.xxx()", modelScope );
+        el.eval( "a.shout( 'out loud' )", modelScope );
     }
-
 
 
     @Test
@@ -263,10 +260,10 @@ public class ConditionalMethodsTest
         stack.push( new HashMap<>() );
 
         ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> stack );
-        MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el, staticMap );
+        MapStepsELResolver tlsELResolver = new MapStepsELResolver( el, el );
         el.addPrimaryResolvers( tlsELResolver );
 
-        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack, staticMap ) );
+        el.addSecondaryResolvers( new ConditionalMethodsELResolver( scopeStack ) );
 
         el.addListeners( new SimpleEvaluationListener() );
 

@@ -1,6 +1,5 @@
 package com.brentcroft.tools.el;
 
-import com.sun.el.stream.StreamELResolver;
 import jakarta.el.*;
 import lombok.Getter;
 import lombok.extern.java.Log;
@@ -114,36 +113,7 @@ public class SimpleELContextFactory implements ELContextFactory
 
     ELResolver newResolver( Map< ?, ? > rootObjects )
     {
-        CompositeELResolver resolver = new CompositeELResolver()
-        {
-            public void setValue( ELContext context, Object base, Object property, Object value )
-            {
-                super.setValue( context, base == null ? rootObjects : base, property, value );
-            }
-        };
-        // eg: thread local stack
-        if ( customPrimaryResolvers != null )
-        {
-            resolver.add( customPrimaryResolvers );
-        }
-
-        resolver.add( new ParentedMapELResolver( rootObjects ) );
-
-        // eg: static maps
-        if ( customSecondaryResolvers != null )
-        {
-            resolver.add( customSecondaryResolvers );
-        }
-        resolver.add( new MapMethodELResolver());
-        resolver.add( new StreamELResolver() );
-        resolver.add( new StaticFieldELResolver() );
-        resolver.add( new ArrayELResolver() );
-        resolver.add( new ListELResolver() );
-        resolver.add( new BeanELResolver() );
-        resolver.add( new MapELResolver() );
-        resolver.add( new ResourceBundleELResolver() );
-
-        return resolver;
+        return new SimpleELResolver( rootObjects, customPrimaryResolvers, customSecondaryResolvers );
     }
 
     class RootELContext extends SimpleELContext

@@ -197,6 +197,13 @@ public class ELTemplateManager implements TextExpander, Evaluator
         return buildTemplate( elText ).render( rootObjects );
     }
 
+    public ValueExpression compile( String expression )
+    {
+        return getExpressionFactory()
+            .createValueExpression( context, "${" + expression + '}', Object.class );
+    }
+
+
     /**
      * Evaluates the supplied <code>EL expression</code> (i.e. minus the dollar and braces)
      * with respect to the supplied map of root
