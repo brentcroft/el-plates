@@ -42,79 +42,106 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         {
             return null;
         }
-        if ( !(base instanceof Map) )
+        if ( ! ( base instanceof Map ) )
         {
             return null;
         }
 
         Map< String, Object > baseMap = ( Map< String, Object > ) base;
 
-        scopeStack.get().push( newContainer( baseMap ) );
-
-        try {
-            switch ( methodName.toString() )
-            {
-                case "ifThen":
-                    if ( params.length < 2
-                            || ! ( params[ 0 ] instanceof LambdaExpression )
-                            || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                    {
-                        return null;
-                    }
+        switch ( methodName.toString() )
+        {
+            case "ifThen":
+                if ( params.length < 2
+                        || ! ( params[ 0 ] instanceof LambdaExpression )
+                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                {
+                    return null;
+                }
+                scopeStack.get().push( newContainer( baseMap ) );
+                try
+                {
                     ifThen( context, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
+                }
+                finally
+                {
+                    scopeStack.get().pop();
+                }
 
-                case "ifThenElse":
-                    if ( params.length < 3
-                            || ! ( params[ 0 ] instanceof LambdaExpression )
-                            || ! ( params[ 1 ] instanceof LambdaExpression )
-                            || ! ( params[ 2 ] instanceof LambdaExpression ) )
-                    {
-                        return null;
-                    }
+            case "ifThenElse":
+                if ( params.length < 3
+                        || ! ( params[ 0 ] instanceof LambdaExpression )
+                        || ! ( params[ 1 ] instanceof LambdaExpression )
+                        || ! ( params[ 2 ] instanceof LambdaExpression ) )
+                {
+                    return null;
+                }
+                scopeStack.get().push( newContainer( baseMap ) );
+                try
+                {
                     ifThenElse( context, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
+                }
+                finally
+                {
+                    scopeStack.get().pop();
+                }
 
-                case "whileDo":
-                    if ( params.length < 3
-                            || ! ( params[ 0 ] instanceof LambdaExpression )
-                            || ! ( params[ 1 ] instanceof LambdaExpression )
-                            || ! ( params[ 2 ] instanceof Number ) )
-                    {
-                        return null;
-                    }
+            case "whileDo":
+                if ( params.length < 3
+                        || ! ( params[ 0 ] instanceof LambdaExpression )
+                        || ! ( params[ 1 ] instanceof LambdaExpression )
+                        || ! ( params[ 2 ] instanceof Number ) )
+                {
+                    return null;
+                }
+                scopeStack.get().push( newContainer( baseMap ) );
+                try
+                {
                     whileDo( context, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
+                }
+                finally
+                {
+                    scopeStack.get().pop();
+                }
 
-                case "tryExcept":
-                    if ( params.length < 2
-                            || ! ( params[ 0 ] instanceof LambdaExpression )
-                            || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                    {
-                        return null;
-                    }
+            case "tryExcept":
+                if ( params.length < 2
+                        || ! ( params[ 0 ] instanceof LambdaExpression )
+                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                {
+                    return null;
+                }
+                scopeStack.get().push( newContainer( baseMap ) );
+                try
+                {
                     tryExcept( context, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
+                }
+                finally
+                {
+                    scopeStack.get().pop();
+                }
 
-                case "put":
-                    if ( params.length != 2
-                            || ! ( params[ 0 ] instanceof String )
-                            || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                    {
-                        return null;
-                    }
+            case "put":
+                if ( params.length != 2
+                        || ! ( params[ 0 ] instanceof String )
+                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
+                {
+                    return null;
+                }
 
-                    putRunnable( context, params, baseMap );
-                    context.setPropertyResolved( base, methodName );
-                    return base;
-            }
-        } finally {
-            scopeStack.get().pop( );
+                putRunnable( context, params, baseMap );
+                context.setPropertyResolved( base, methodName );
+                return base;
         }
+
 
         return null;
     }
@@ -147,7 +174,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         finally
         {
             double durationSeconds = Long
-                    .valueOf( System.currentTimeMillis() - started).doubleValue() / 1000;
+                    .valueOf( System.currentTimeMillis() - started ).doubleValue() / 1000;
             Optional
                     .ofNullable(
                             ( params.length > 2 && params[ 2 ] instanceof LambdaExpression )
@@ -199,7 +226,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
             if ( currentLoop > maxLoops )
             {
                 double durationSeconds = Long
-                        .valueOf( System.currentTimeMillis() - started).doubleValue() / 1000;
+                        .valueOf( System.currentTimeMillis() - started ).doubleValue() / 1000;
                 onTimeout
                         .orElseThrow( () -> new RetriesException( maxLoops, test.toString() ) )
                         .invoke( context, durationSeconds );
