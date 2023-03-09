@@ -31,9 +31,9 @@ public class MapStepsELResolver extends BaseELResolver
 
         @SuppressWarnings( "unchecked" )
         Map< String, Object > root = ( Map< String, Object > ) base;
-        Map< String, Object > args = (params != null && params.length > 0 && params[0] instanceof Map )
-            ? (Map<String,Object>) params[0]
-            : null;
+        Map< String, Object > args = ( params != null && params.length > 0 && params[ 0 ] instanceof Map )
+                                     ? ( Map< String, Object > ) params[ 0 ]
+                                     : null;
 
         String stepsKey = format( "$$%s", methodName );
 
@@ -53,15 +53,23 @@ public class MapStepsELResolver extends BaseELResolver
 
         scope.put( "$functionName", stepsKey );
 
-        if (args != null ) {
-            scope.putAll(args);
+        if ( args != null )
+        {
+            scope.putAll( args );
         }
+
+        int[] lineNumber = { 0 };
+        String[] lastStep = { null };
 
         try
         {
             Object[] lastResult = { null };
             Evaluator
                     .stepsStream( steps )
+                    .peek( step -> {
+                        lineNumber[ 0 ]++;
+                        lastStep[ 0 ] = step;
+                    } )
                     .map( step -> expander.expandText( step, scope ) )
                     .forEachOrdered( step -> lastResult[ 0 ] = evaluator.eval( step, scope ) );
             Object ret = lastResult[ 0 ];
@@ -88,7 +96,7 @@ public class MapStepsELResolver extends BaseELResolver
                 return ( ( ReturnException ) cause ).get();
             }
 
-            throw e;
+            throw new ELException( format( "Failed at step [%s] %s; base=%s, method=%s", lineNumber[ 0 ], lastStep[0], base, methodName ), cause );
         }
     }
 }
