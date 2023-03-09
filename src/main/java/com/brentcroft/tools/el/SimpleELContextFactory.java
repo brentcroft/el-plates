@@ -1,13 +1,12 @@
 package com.brentcroft.tools.el;
 
+import com.brentcroft.tools.el.resolver.SimpleELResolver;
 import jakarta.el.*;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.brentcroft.tools.jstl.JstlNamespace.prefix;
@@ -22,15 +21,47 @@ import static java.lang.String.format;
 @Log
 public class SimpleELContextFactory implements ELContextFactory
 {
+    private final ELTemplateManager el;
     @Getter
     private final ImportHandler importHandler = new ImportHandler();
-
     private final Map< String, Method > mappedFunctions = new HashMap<>();
-
     private EvaluationListener[] listeners;
 
     private CompositeELResolver customPrimaryResolvers;
     private CompositeELResolver customSecondaryResolvers;
+
+    public SimpleELContextFactory(ELTemplateManager el) {
+        this.el = el;
+    }
+
+    private static final ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> {
+        Stack< Map< String, Object > > s = new Stack<>();
+        s.push( new HashMap<>() );
+        return s;
+    } );
+
+    private static final Map< String, Object > staticModel = new LinkedHashMap<>();
+
+    public ThreadLocal< Stack< Map< String, Object > > > getScopeStack() {
+        return scopeStack;
+    }
+
+    public Map< String, Object > getStaticModel() {
+        return staticModel;
+    }
+
+
+    /**
+     * Clear down the scope stack to one empty map.
+     * Clear the static model.
+     */
+    public static void clean() {
+
+        while(scopeStack.get().size() > 1) {
+            scopeStack.get().pop();
+        }
+        staticModel.clear();
+    }
 
     public void mapFunction( String unprefixedName, Method staticMethod )
     {
@@ -113,7 +144,7 @@ public class SimpleELContextFactory implements ELContextFactory
 
     ELResolver newResolver( Map< ?, ? > rootObjects )
     {
-        return new SimpleELResolver( rootObjects, customPrimaryResolvers, customSecondaryResolvers );
+        return new SimpleELResolver( rootObjects, scopeStack, staticModel, el );
     }
 
     class RootELContext extends SimpleELContext

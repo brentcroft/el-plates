@@ -1,6 +1,8 @@
 package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.jstl.MapBindings;
+import com.brentcroft.tools.model.ModelItem;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
@@ -17,6 +19,12 @@ import static org.junit.Assert.assertEquals;
 public class ELTemplateManagerTest
 {
     private final ELTemplateManager el = new ELTemplateManager();
+
+    @Before
+    public void setUp()
+    {
+        SimpleELContextFactory.clean();
+    }
 
     @Test
     public void test_BasicEL01()
@@ -319,10 +327,10 @@ public class ELTemplateManagerTest
                         .withEntry( "color4", "obtuse" )
                 );
 
-        el.eval("colors.color4 = 'red'", bindings );
+        el.eval( "colors.color4 = 'red'", bindings );
 
         assertEquals( "red", el.eval( "colors.color4", bindings ) );
-        assertEquals( 11L, el.eval( "time = 10; time + 1", bindings ) );
+        assertEquals( 11L, el.eval( "$local.time = 10; time + 1", bindings ) );
     }
 
     @Test
@@ -333,7 +341,7 @@ public class ELTemplateManagerTest
                 .getImportHandler()
                 .importClass( SomeClassWithStaticMembers.class.getTypeName() );
 
-        assertEquals( "hello", el.eval( "SomeClassWithStaticMembers.ELSE", new MapBindings()) );
+        assertEquals( "hello", el.eval( "SomeClassWithStaticMembers.ELSE", new MapBindings() ) );
         assertEquals( 60, el.eval( "SomeClassWithStaticMembers.sixty()", new MapBindings() ) );
     }
 

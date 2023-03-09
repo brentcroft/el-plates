@@ -1,8 +1,12 @@
 package com.brentcroft.tools.jstl;
 
 
+import com.brentcroft.tools.el.*;
+import com.brentcroft.tools.model.AbstractModelItem;
+import com.brentcroft.tools.model.ModelItem;
 import jakarta.el.ELException;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.fail;
@@ -11,6 +15,13 @@ import static org.junit.Assert.fail;
 public class JstlScriptTest
 {
     private final JstlTemplateManager jstl = new JstlTemplateManager();
+
+
+    @Before
+    public void clean()
+    {
+        SimpleELContextFactory.clean();
+    }
 
     @Test()
     public void test_SCRIPT_InvalidScriptWontCompile()
@@ -57,14 +68,14 @@ public class JstlScriptTest
     public void test_SCRIPT_Scope()
     {
         final String[][] samples = {
-                {"<c:script>fred=2; 0</c:script>${ fred.intValue() }", "2"},
-                {"<c:script>fred=2</c:script>${ fred.intValue() }", "2"},
+                {"<c:script>$local.fred=2; 0</c:script>${ fred.intValue() }", "2"},
+                {"<c:script>$local.fred=2</c:script>${ fred.intValue() }", "2"},
 
-                {"<c:script>fred=8; 0</c:script>${ fred.intValue() }", "8"},
-                {"<c:script>fred=8</c:script>${ fred.intValue() }", "8"},
+                {"<c:script>$local.fred=8; 0</c:script>${ fred.intValue() }", "8"},
+                {"<c:script>$local.fred=8</c:script>${ fred.intValue() }", "8"},
 
-                {"<c:script>fred=2; 0</c:script>${ fred }", "2"},
-                {"<c:script>fred=2</c:script>${ fred }", "2"}
+                {"<c:script>$local.fred=2; 0</c:script>${ fred }", "2"},
+                {"<c:script>$local.fred=2</c:script>${ fred }", "2"}
         };
 
         for ( String[] sample : samples )

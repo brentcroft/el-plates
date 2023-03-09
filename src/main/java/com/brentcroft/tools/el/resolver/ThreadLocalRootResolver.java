@@ -1,4 +1,4 @@
-package com.brentcroft.tools.el;
+package com.brentcroft.tools.el.resolver;
 
 import jakarta.el.ELContext;
 import lombok.AllArgsConstructor;
@@ -14,13 +14,17 @@ public class ThreadLocalRootResolver extends BaseELResolver
     @Override
     public Object getValue( ELContext context, Object base, Object property )
     {
-        if (base != null || property == null || scopeStack.get().isEmpty()) {
+        if (property == null) {
             return null;
         }
 
-        if ("$local".equals( property ) && !scopeStack.get().isEmpty()) {
-            context.setPropertyResolved( null, property );
+        if ("$local".equals( property )) {
+            context.setPropertyResolved( base, property );
             return scopeStack.get().peek();
+        }
+
+        if (base != null) {
+            return null;
         }
 
         final Stack<Map< String, Object >> stack = scopeStack.get();

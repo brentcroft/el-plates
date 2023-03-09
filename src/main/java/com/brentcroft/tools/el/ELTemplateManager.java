@@ -54,7 +54,7 @@ public class ELTemplateManager implements TextExpander, Evaluator
 {
     private ExpressionFactory expressionFactory = null;
 
-    private final SimpleELContextFactory elContextFactory = new SimpleELContextFactory();
+    private final SimpleELContextFactory elContextFactory = new SimpleELContextFactory(this);
 
     public static final String DEFAULT_TEMPLATE_EXTENSION = ".tpl";
 
@@ -75,7 +75,7 @@ public class ELTemplateManager implements TextExpander, Evaluator
         elContextFactory.mapFunction( prefixedName, staticMethod );
     }
 
-    public ELContextFactory getELContextFactory()
+    public SimpleELContextFactory getELContextFactory()
     {
         return elContextFactory;
     }

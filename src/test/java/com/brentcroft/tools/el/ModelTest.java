@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.file.Paths;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -16,7 +15,7 @@ public class ModelTest
     @Before
     public void setCurrentDirectory() {
         item.setCurrentDirectory( Paths.get( "src/test/resources/models" ) );
-        item.getStaticModel().clear();
+        SimpleELContextFactory.clean();
     }
 
     @Test
@@ -55,18 +54,17 @@ public class ModelTest
     @Test
     public void localModelStaticScopes()
     {
-        item.steps( "$static.vegetable = 'cabbage'" );
+        item.eval( "$static.vegetable = 'cabbage'" );
         assertEquals( "cabbage", item.eval( "vegetable" ) );
 
-        item.steps( "$static.vegetable = 'cabbage'; $self.vegetable = 'turnip'" );
+        item.eval( "$static.vegetable = 'cabbage'; $self.vegetable = 'turnip'" );
         assertEquals( "turnip", item.eval( "vegetable" ) );
 
         assertEquals( "cabbage", new ModelItem().eval( "vegetable" ) );
 
-        Object result = item.steps( "$local.vegetable = 'chard'; $self.vegetable = 'cabbage'; vegetable" );
-        assertEquals( "chard", result );
+        Object result = item.eval( "$local.vegetable = 'chard'; $self.vegetable = 'cabbage'; vegetable" );
+        assertEquals( "cabbage", result );
         assertEquals( "cabbage", item.eval( "vegetable" ) );
-
-        assertEquals( "cabbage", new ModelItem().eval( "vegetable" ) );
+        assertEquals( "chard", new ModelItem().eval( "vegetable" ) );
     }
 }

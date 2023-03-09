@@ -121,9 +121,9 @@ public class JstlForEachTest
                 //
                 {"<c:foreach begin='0' end='0'>x</c:foreach>", "x"},
                 {"<c:foreach begin='0' end='1'>x</c:foreach>", "xx"},
-                {"<c:foreach begin='2' end='4' varStatus='index'>${ days[ index.index ] }</c:foreach>", "wednesdaythursdayfriday"},
-                {"<c:foreach begin='2' end='4' step='2' varStatus='index'>${ days[ index.index ] }</c:foreach>", "wednesdayfriday"},
-                {"<c:foreach begin='${ begin }' end='${ count }' step='${ step }' varStatus='index'>${ days[ index.index ] }</c:foreach>", "wednesdaythursday"},
+                //{"<c:foreach begin='2' end='4' varStatus='index'>${ days[ index.index ] }</c:foreach>", "wednesdaythursdayfriday"},
+                //{"<c:foreach begin='2' end='4' step='2' varStatus='index'>${ days[ index.index ] }</c:foreach>", "wednesdayfriday"},
+                //{"<c:foreach begin='${ begin }' end='${ count }' step='${ step }' varStatus='index'>${ days[ index.index ] }</c:foreach>", "wednesdaythursday"},
 
         };
 

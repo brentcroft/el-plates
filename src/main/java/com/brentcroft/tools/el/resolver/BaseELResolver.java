@@ -1,5 +1,6 @@
-package com.brentcroft.tools.el;
+package com.brentcroft.tools.el.resolver;
 
+import com.brentcroft.tools.el.Parented;
 import com.brentcroft.tools.jstl.MapBindings;
 import jakarta.el.ELContext;
 import jakarta.el.ELResolver;
@@ -46,14 +47,12 @@ public class BaseELResolver extends ELResolver
         return null;
     }
 
-
     public Map< String, Object > newContainer( Map< String, Object > root )
     {
         MapBindings bindings = new MapBindings( root );
         bindings.put( "$self", root );
-        if ( root instanceof Parented )
-        {
-            bindings.put( "$parent", ( ( Parented ) root ).getParent() );
+        if (root instanceof Parented ) {
+            bindings.put( "$parent", ((Parented)root).getParent() );
         }
         return bindings;
     }

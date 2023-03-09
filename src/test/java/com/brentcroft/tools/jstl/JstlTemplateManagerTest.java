@@ -2,8 +2,14 @@ package com.brentcroft.tools.jstl;
 
 //import com.brentcroft.tools.el.StandardELFilter;
 
+import com.brentcroft.tools.el.*;
+import com.brentcroft.tools.model.AbstractModelItem;
+import com.brentcroft.tools.model.ModelItem;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
+import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
 
@@ -11,6 +17,13 @@ public class JstlTemplateManagerTest
 {
     private final JstlTemplateManager jstl = new JstlTemplateManager();
 
+    @Before
+    public void clean()
+    {
+        SimpleELContextFactory.clean();
+
+        ELTemplateManager el = jstl.getELTemplateManager();
+    }
 
     @Test
     public void test_StripCDATA()
@@ -52,8 +65,8 @@ public class JstlTemplateManagerTest
     {
         String text = "" +
                 "    <c:script>" +
-                "        days = [ 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ];\n" +
-                "        day = 3;;;\n" +
+                "        $local.days = [ 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ];\n" +
+                "        $local.day = 3\n" +
                 "    </c:script>\n" +
                 "    generated: ${ c:format( '%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL', [ c:now() ] ) }\n" +
                 "    <c:choose>\n" +
