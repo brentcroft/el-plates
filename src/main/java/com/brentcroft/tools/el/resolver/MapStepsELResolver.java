@@ -2,6 +2,7 @@ package com.brentcroft.tools.el.resolver;
 
 import com.brentcroft.tools.el.Evaluator;
 import com.brentcroft.tools.el.ReturnException;
+import com.brentcroft.tools.el.StepsException;
 import com.brentcroft.tools.el.TextExpander;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
@@ -96,7 +97,7 @@ public class MapStepsELResolver extends BaseELResolver
                 return ( ( ReturnException ) cause ).get();
             }
 
-            throw new ELException( format( "Failed at step [%s] %s; base=%s, method=%s", lineNumber[ 0 ], lastStep[0], base, methodName ), cause );
+            throw new StepsException( lineNumber[ 0 ], lastStep[0], base, methodName, cause );
         }
     }
 }
