@@ -28,7 +28,7 @@ public class SimpleELResolver extends CompositeELResolver
 
         //add( new CompiledStepsResolver( scopeStack ) );
         add( new MapStepsELResolver( em, em ) );
-        add( new ConditionalMethodsELResolver( scopeStack ) );
+        add( new ConditionalMethodsELResolver( scopeStack, em.getELContextFactory() ) );
         add( new StaticMapELResolver( staticModel ) );
 
         add( new BeanELResolver() );

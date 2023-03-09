@@ -6,7 +6,7 @@ import lombok.Setter;
 
 import java.util.Map;
 
-class SimpleELContext extends ELContext
+public class SimpleELContext extends ELContext
 {
     @Getter
     protected final FunctionMapper functionMapper;
@@ -48,5 +48,28 @@ class SimpleELContext extends ELContext
             return super.getImportHandler();
         }
         return importHandler;
+    }
+
+    public ELContext getChildContext( Map< String, Object> baseMap )
+    {
+        return new ELContext() {
+            @Override
+            public ELResolver getELResolver()
+            {
+                return simpleELContextFactory.newResolver( baseMap );
+            }
+
+            @Override
+            public FunctionMapper getFunctionMapper()
+            {
+                return functionMapper;
+            }
+
+            @Override
+            public VariableMapper getVariableMapper()
+            {
+                return variableMapper;
+            }
+        };
     }
 }

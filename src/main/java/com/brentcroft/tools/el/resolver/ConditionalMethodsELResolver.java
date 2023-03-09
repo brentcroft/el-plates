@@ -1,7 +1,9 @@
 package com.brentcroft.tools.el.resolver;
 
+import com.brentcroft.tools.el.ELContextFactory;
 import com.brentcroft.tools.el.RetriesException;
 import com.brentcroft.tools.el.ReturnException;
+import com.brentcroft.tools.el.SimpleELContext;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
 import jakarta.el.LambdaExpression;
@@ -16,6 +18,7 @@ import java.util.function.BiFunction;
 public class ConditionalMethodsELResolver extends BaseELResolver
 {
     private final ThreadLocal< Stack< Map< String, Object > > > scopeStack;
+    private final ELContextFactory elContextFactory;
 
     private static final BiFunction< ELContext, LambdaExpression, Boolean > returnHandlingTest = ( ELContext context, LambdaExpression test ) -> {
         try
@@ -51,6 +54,10 @@ public class ConditionalMethodsELResolver extends BaseELResolver
 
         Map< String, Object > baseMap = ( Map< String, Object > ) base;
 
+        ELContext localContext = ( context instanceof SimpleELContext )
+                ? ((SimpleELContext)context).getChildContext(baseMap)
+                : context;
+
         switch ( methodName.toString() )
         {
             case "ifThen":
@@ -63,7 +70,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 scopeStack.get().push( newContainer( baseMap ) );
                 try
                 {
-                    ifThen( context, params );
+                    ifThen( localContext, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
                 }
@@ -83,7 +90,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 scopeStack.get().push( newContainer( baseMap ) );
                 try
                 {
-                    ifThenElse( context, params );
+                    ifThenElse( localContext, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
                 }
@@ -103,7 +110,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 scopeStack.get().push( newContainer( baseMap ) );
                 try
                 {
-                    whileDo( context, params );
+                    whileDo( localContext, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
                 }
@@ -122,7 +129,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 scopeStack.get().push( newContainer( baseMap ) );
                 try
                 {
-                    tryExcept( context, params );
+                    tryExcept( localContext, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
                 }
