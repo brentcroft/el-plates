@@ -54,10 +54,6 @@ public class ConditionalMethodsELResolver extends BaseELResolver
 
         Map< String, Object > baseMap = ( Map< String, Object > ) base;
 
-        ELContext localContext = ( context instanceof SimpleELContext )
-                ? ((SimpleELContext)context).getChildContext(baseMap)
-                : context;
-
         switch ( methodName.toString() )
         {
             case "ifThen":
@@ -70,7 +66,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 scopeStack.get().push( newContainer( baseMap ) );
                 try
                 {
-                    ifThen( localContext, params );
+                    ifThen( context, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
                 }
@@ -90,7 +86,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 scopeStack.get().push( newContainer( baseMap ) );
                 try
                 {
-                    ifThenElse( localContext, params );
+                    ifThenElse( context, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
                 }
@@ -110,7 +106,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 scopeStack.get().push( newContainer( baseMap ) );
                 try
                 {
-                    whileDo( localContext, params );
+                    whileDo( context, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
                 }
@@ -129,7 +125,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 scopeStack.get().push( newContainer( baseMap ) );
                 try
                 {
-                    tryExcept( localContext, params );
+                    tryExcept( context, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
                 }
