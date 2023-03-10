@@ -61,7 +61,7 @@
         cards.tryExcept(
             () -> [
                 c:println( processData02( $parent.data ) ),
-                c:println( spades ),
+                c:println( c:format( '%s: spades', [ $functionName ] ) ),
                 c:delay( 50 )
             ],
             ( e ) -> e.printStackTrace(),

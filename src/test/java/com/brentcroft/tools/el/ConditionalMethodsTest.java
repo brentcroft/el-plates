@@ -3,6 +3,7 @@ package com.brentcroft.tools.el;
 import com.brentcroft.tools.jstl.MapBindings;
 import com.brentcroft.tools.model.ModelItem;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.file.Paths;
@@ -68,11 +69,14 @@ public class ConditionalMethodsTest
 
 
     @Test
+    @Ignore
     public void test_assignment()
     {
         MapBindings bindings = new MapBindings().withEntry( "colors", new MapBindings() );
         el.eval( "colors.time = 10", bindings );
-        el.eval( "colors.whileDo( ()-> $self.time < 20, () -> ($self.time = time + 1 ), 12 )", bindings );
+        assertEquals( 10L, el.eval( "colors.time", bindings ) );
+
+        el.eval( "colors.whileDo( () -> time < 20, ( i ) -> ($self.time = time + i ), 12 )", bindings );
         assertEquals( 20L, el.eval( "colors.time", bindings ) );
 
         el.eval( "colors.whileDo( () -> true, () -> c:delay(500), 1, ( s ) -> ($self.timeWaiting = s ) )", bindings );

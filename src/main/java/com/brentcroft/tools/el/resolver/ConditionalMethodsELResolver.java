@@ -54,17 +54,23 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         }
 
         Map< String, Object > baseMap = ( Map< String, Object > ) base;
+        Map< String, Object > rootMap = null;
 
         ELContext localContext = context;
-        if (context instanceof EvaluationContext ) {
-            EvaluationContext ec = (EvaluationContext)context;
-            if (ec.getELContext() instanceof SimpleELContext) {
-                SimpleELContext selc = (SimpleELContext)ec.getELContext();
-                if (selc.getRootObjects() != baseMap) {
+        if ( context instanceof EvaluationContext )
+        {
+            EvaluationContext ec = ( EvaluationContext ) context;
+            if ( ec.getELContext() instanceof SimpleELContext )
+            {
+                SimpleELContext selc = ( SimpleELContext ) ec.getELContext();
+                if ( selc.getRootObjects() != baseMap )
+                {
+                    rootMap = ( Map< String, Object > ) selc.getRootObjects();
                     localContext = new EvaluationContext(
                             selc.getChildContext( newContainer( baseMap ) ),
                             ec.getFunctionMapper(),
-                            ec.getVariableMapper());
+                            ec.getVariableMapper() );
+//                    localContext = selc.getChildContext( newContainer( baseMap ) );
                 }
             }
         }
@@ -78,9 +84,10 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-                ifThen( localContext, params );
+                ifThen( localContext, rootMap, params );
                 context.setPropertyResolved( base, methodName );
                 return base;
+
 
             case "ifThenElse":
                 if ( params.length < 3
@@ -90,7 +97,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-                ifThenElse( localContext, params );
+                ifThenElse( context, rootMap, params );
                 context.setPropertyResolved( base, methodName );
                 return base;
 
@@ -102,10 +109,9 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-
-                    whileDo( localContext, params );
-                    context.setPropertyResolved( base, methodName );
-                    return base;
+                whileDo( context, rootMap, params );
+                context.setPropertyResolved( base, methodName );
+                return base;
 
             case "tryExcept":
                 if ( params.length < 2
@@ -114,9 +120,10 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-                    tryExcept( localContext, params );
-                    context.setPropertyResolved( base, methodName );
-                    return base;
+                tryExcept( context, rootMap, params );
+                context.setPropertyResolved( base, methodName );
+                return base;
+
 
             case "put":
                 if ( params.length != 2
@@ -125,7 +132,6 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-
                 putRunnable( context, params, baseMap );
                 context.setPropertyResolved( base, methodName );
                 return base;
@@ -142,34 +148,58 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         base.put( key, runnableAction );
     }
 
-    private void tryExcept( ELContext context, Object[] params )
+    private void maybePushRootMap( Map< String, Object > rootMap )
+    {
+        if ( rootMap != null )
+        {
+            scopeStack.get().push( newContainer( rootMap ) );
+        }
+    }
+
+    private void maybePopRootMap( Map< String, Object > rootMap )
+    {
+        if ( rootMap != null )
+        {
+            scopeStack.get().pop();
+        }
+    }
+
+    private void tryExcept( ELContext context, Map< String, Object > rootMap, Object[] params )
     {
         if ( params.length < 2 || ! ( params[ 0 ] instanceof LambdaExpression ) || ! ( params[ 1 ] instanceof LambdaExpression ) )
         {
             throw new ELException( "Must have arguments: tryExcept( LambdaExpression, LambdaExpression )" );
         }
-        long started = System.currentTimeMillis();
+        maybePushRootMap( rootMap );
         try
         {
-            LambdaExpression ops = ( LambdaExpression ) params[ 0 ];
-            ops.invoke( context );
-        }
-        catch ( Exception handled )
-        {
-            LambdaExpression onEx = ( LambdaExpression ) params[ 1 ];
-            onEx.invoke( context, skipOrRaise( handled ) );
+            long started = System.currentTimeMillis();
+            try
+            {
+                LambdaExpression ops = ( LambdaExpression ) params[ 0 ];
+                ops.invoke( context );
+            }
+            catch ( Exception handled )
+            {
+                LambdaExpression onEx = ( LambdaExpression ) params[ 1 ];
+                onEx.invoke( context, skipOrRaise( handled ) );
+            }
+            finally
+            {
+                double durationSeconds = Long
+                        .valueOf( System.currentTimeMillis() - started ).doubleValue() / 1000;
+                Optional
+                        .ofNullable(
+                                ( params.length > 2 && params[ 2 ] instanceof LambdaExpression )
+                                ? ( LambdaExpression ) params[ 2 ]
+                                : null
+                        )
+                        .ifPresent( le -> le.invoke( context, durationSeconds ) );
+            }
         }
         finally
         {
-            double durationSeconds = Long
-                    .valueOf( System.currentTimeMillis() - started ).doubleValue() / 1000;
-            Optional
-                    .ofNullable(
-                            ( params.length > 2 && params[ 2 ] instanceof LambdaExpression )
-                            ? ( LambdaExpression ) params[ 2 ]
-                            : null
-                    )
-                    .ifPresent( le -> le.invoke( context, durationSeconds ) );
+            maybePopRootMap( rootMap );
         }
     }
 
@@ -186,7 +216,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         return cause;
     }
 
-    private void whileDo( ELContext context, Object[] params )
+    private void whileDo( ELContext context, Map< String, Object > rootMap, Object[] params )
     {
         if ( params.length < 3
                 || ! ( params[ 0 ] instanceof LambdaExpression )
@@ -206,25 +236,32 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                         ? ( LambdaExpression ) params[ 3 ]
                         : null
                 );
-
-        long started = System.currentTimeMillis();
-        while ( returnHandlingTest.apply( context, test ) )
+        maybePushRootMap( rootMap );
+        try
         {
-            currentLoop++;
-            if ( currentLoop > maxLoops )
+            long started = System.currentTimeMillis();
+            while ( returnHandlingTest.apply( context, test ) )
             {
-                double durationSeconds = Long
-                        .valueOf( System.currentTimeMillis() - started ).doubleValue() / 1000;
-                onTimeout
-                        .orElseThrow( () -> new RetriesException( maxLoops, test.toString() ) )
-                        .invoke( context, durationSeconds );
-                return;
+                currentLoop++;
+                if ( currentLoop > maxLoops )
+                {
+                    double durationSeconds = Long
+                            .valueOf( System.currentTimeMillis() - started ).doubleValue() / 1000;
+                    onTimeout
+                            .orElseThrow( () -> new RetriesException( maxLoops, test.toString() ) )
+                            .invoke( context, durationSeconds );
+                    return;
+                }
+                ops.invoke( context, currentLoop );
             }
-            ops.invoke( context, currentLoop );
+        }
+        finally
+        {
+            maybePopRootMap( rootMap );
         }
     }
 
-    private void ifThenElse( ELContext context, Object[] params )
+    private void ifThenElse( ELContext context, Map< String, Object > rootMap, Object[] params )
     {
         if ( params.length < 3
                 || ! ( params[ 0 ] instanceof LambdaExpression )
@@ -233,20 +270,28 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         {
             throw new ELException( "Must have arguments: ifThenElse( LambdaExpression, LambdaExpression, LambdaExpression )" );
         }
-        final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
-        if ( returnHandlingTest.apply( context, test ) )
+        maybePushRootMap( rootMap );
+        try
         {
-            final LambdaExpression thenOps = ( LambdaExpression ) params[ 1 ];
-            thenOps.invoke( context );
+            final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
+            if ( returnHandlingTest.apply( context, test ) )
+            {
+                final LambdaExpression thenOps = ( LambdaExpression ) params[ 1 ];
+                thenOps.invoke( context );
+            }
+            else
+            {
+                final LambdaExpression elseOps = ( LambdaExpression ) params[ 2 ];
+                elseOps.invoke( context );
+            }
         }
-        else
+        finally
         {
-            final LambdaExpression elseOps = ( LambdaExpression ) params[ 2 ];
-            elseOps.invoke( context );
+            maybePopRootMap( rootMap );
         }
     }
 
-    private void ifThen( ELContext context, Object[] params )
+    private void ifThen( ELContext context, Map< String, Object > rootMap, Object[] params )
     {
         if ( params.length < 2
                 || ! ( params[ 0 ] instanceof LambdaExpression )
@@ -254,11 +299,19 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         {
             throw new ELException( "Must have arguments: ifThen( LambdaExpression, LambdaExpression )" );
         }
-        final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
-        if ( returnHandlingTest.apply( context, test ) )
+        maybePushRootMap( rootMap );
+        try
         {
-            final LambdaExpression thenOps = ( LambdaExpression ) params[ 1 ];
-            thenOps.invoke( context );
+            final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
+            if ( returnHandlingTest.apply( context, test ) )
+            {
+                final LambdaExpression thenOps = ( LambdaExpression ) params[ 1 ];
+                thenOps.invoke( context );
+            }
+        }
+        finally
+        {
+            maybePopRootMap( rootMap );
         }
     }
 }

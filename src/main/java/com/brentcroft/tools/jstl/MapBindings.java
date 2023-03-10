@@ -1,7 +1,6 @@
 package com.brentcroft.tools.jstl;
 
 
-import com.brentcroft.tools.el.Parented;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,10 +21,10 @@ import java.util.Map;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MapBindings extends LinkedHashMap< String, Object > implements Bindings, Parented
+public class MapBindings extends LinkedHashMap< String, Object > implements Bindings
 {
     private static final long serialVersionUID = 8422258558562588221L;
-    private Map< String, Object > parent;
+    private Map< String, Object > delegate;
 
     /**
      * Copies all entries from this MapBindings into the specified target.
@@ -42,15 +41,15 @@ public class MapBindings extends LinkedHashMap< String, Object > implements Bind
         {
             return;
         }
-        else if ( parent != null )
+        else if ( delegate != null )
         {
-            if ( parent instanceof MapBindings )
+            if ( delegate instanceof MapBindings )
             {
-                ( ( MapBindings ) parent ).copyTo( target );
+                ( ( MapBindings ) delegate ).copyTo( target );
             }
             else
             {
-                target.putAll( parent );
+                target.putAll( delegate );
             }
         }
 
@@ -62,15 +61,15 @@ public class MapBindings extends LinkedHashMap< String, Object > implements Bind
     {
         return super.containsKey( a )
                ? super.get( a )
-               : parent != null
-                    ? parent.get( a )
+               : delegate != null
+                    ? delegate.get( a )
                     : null;
     }
 
     @Override
     public boolean containsKey( Object a )
     {
-        return super.containsKey( a ) || parent != null && parent.containsKey( a );
+        return super.containsKey( a ) || delegate != null && delegate.containsKey( a );
     }
 
     public MapBindings withEntry( String name, Object value )
@@ -81,13 +80,13 @@ public class MapBindings extends LinkedHashMap< String, Object > implements Bind
 
     public String toString()
     {
-        if ( parent == null )
+        if ( delegate == null )
         {
             return super.toString();
         }
         else
         {
-            return super.toString() + ( "; " + parent.toString() );
+            return super.toString() + ( "; " + delegate.toString() );
         }
     }
 }
