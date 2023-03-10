@@ -60,7 +60,7 @@
 
         cards.tryExcept(
             () -> [
-                c:println( processData02( data ) ),
+                c:println( processData02( $parent.data ) ),
                 c:println( spades ),
                 c:delay( 50 )
             ],
