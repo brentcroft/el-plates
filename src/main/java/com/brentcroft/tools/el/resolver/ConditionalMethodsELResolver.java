@@ -4,6 +4,7 @@ import com.brentcroft.tools.el.ELContextFactory;
 import com.brentcroft.tools.el.RetriesException;
 import com.brentcroft.tools.el.ReturnException;
 import com.brentcroft.tools.el.SimpleELContext;
+import com.sun.el.lang.EvaluationContext;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
 import jakarta.el.LambdaExpression;
@@ -54,6 +55,20 @@ public class ConditionalMethodsELResolver extends BaseELResolver
 
         Map< String, Object > baseMap = ( Map< String, Object > ) base;
 
+        ELContext localContext = context;
+        if (context instanceof EvaluationContext ) {
+            EvaluationContext ec = (EvaluationContext)context;
+            if (ec.getELContext() instanceof SimpleELContext) {
+                SimpleELContext selc = (SimpleELContext)ec.getELContext();
+                if (selc.getRootObjects() != baseMap) {
+                    localContext = new EvaluationContext(
+                            selc.getChildContext( newContainer( baseMap ) ),
+                            ec.getFunctionMapper(),
+                            ec.getVariableMapper());
+                }
+            }
+        }
+
         switch ( methodName.toString() )
         {
             case "ifThen":
@@ -63,17 +78,9 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-                scopeStack.get().push( newContainer( baseMap ) );
-                try
-                {
-                    ifThen( context, params );
-                    context.setPropertyResolved( base, methodName );
-                    return base;
-                }
-                finally
-                {
-                    scopeStack.get().pop();
-                }
+                ifThen( localContext, params );
+                context.setPropertyResolved( base, methodName );
+                return base;
 
             case "ifThenElse":
                 if ( params.length < 3
@@ -83,17 +90,9 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-                scopeStack.get().push( newContainer( baseMap ) );
-                try
-                {
-                    ifThenElse( context, params );
-                    context.setPropertyResolved( base, methodName );
-                    return base;
-                }
-                finally
-                {
-                    scopeStack.get().pop();
-                }
+                ifThenElse( localContext, params );
+                context.setPropertyResolved( base, methodName );
+                return base;
 
             case "whileDo":
                 if ( params.length < 3
@@ -103,17 +102,10 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-                scopeStack.get().push( newContainer( baseMap ) );
-                try
-                {
-                    whileDo( context, params );
+
+                    whileDo( localContext, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
-                }
-                finally
-                {
-                    scopeStack.get().pop();
-                }
 
             case "tryExcept":
                 if ( params.length < 2
@@ -122,17 +114,9 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-                scopeStack.get().push( newContainer( baseMap ) );
-                try
-                {
-                    tryExcept( context, params );
+                    tryExcept( localContext, params );
                     context.setPropertyResolved( base, methodName );
                     return base;
-                }
-                finally
-                {
-                    scopeStack.get().pop();
-                }
 
             case "put":
                 if ( params.length != 2
@@ -146,7 +130,6 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 context.setPropertyResolved( base, methodName );
                 return base;
         }
-
 
         return null;
     }

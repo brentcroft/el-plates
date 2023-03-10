@@ -34,6 +34,7 @@ public class ModelItem extends AbstractModelItem implements Parented
     {
         MapBindings bindings = new MapBindings( this );
         bindings.put( "$self", this );
+        bindings.put( "$parent", getParent() );
         return bindings;
     }
 
