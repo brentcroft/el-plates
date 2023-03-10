@@ -1,6 +1,7 @@
 package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.el.resolver.SimpleELResolver;
+import com.brentcroft.tools.jstl.MapBindings;
 import jakarta.el.*;
 import lombok.Getter;
 import lombok.extern.java.Log;
@@ -34,15 +35,15 @@ public class SimpleELContextFactory implements ELContextFactory
         this.el = el;
     }
 
-    private static final ThreadLocal< Stack< Map< String, Object > > > scopeStack = ThreadLocal.withInitial( () -> {
-        Stack< Map< String, Object > > s = new Stack<>();
-        s.push( new HashMap<>() );
+    private static final ThreadLocal< Stack< MapBindings > > scopeStack = ThreadLocal.withInitial( () -> {
+        Stack< MapBindings > s = new Stack<>();
+        s.push( new MapBindings() );
         return s;
     } );
 
     private static final Map< String, Object > staticModel = new LinkedHashMap<>();
 
-    public ThreadLocal< Stack< Map< String, Object > > > getScopeStack() {
+    public ThreadLocal< Stack< MapBindings > > getScopeStack() {
         return scopeStack;
     }
 

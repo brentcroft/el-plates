@@ -47,7 +47,7 @@ public class BaseELResolver extends ELResolver
         return null;
     }
 
-    public Map< String, Object > newContainer( Map< String, Object > root )
+    public MapBindings newContainer( Map< String, Object > root )
     {
         MapBindings bindings = new MapBindings( root );
         bindings.put( "$self", root );

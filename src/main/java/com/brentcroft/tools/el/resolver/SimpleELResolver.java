@@ -1,6 +1,7 @@
 package com.brentcroft.tools.el.resolver;
 
 import com.brentcroft.tools.el.ELTemplateManager;
+import com.brentcroft.tools.jstl.MapBindings;
 import com.sun.el.stream.StreamELResolver;
 import jakarta.el.*;
 import lombok.Getter;
@@ -13,7 +14,7 @@ import java.util.Stack;
 @Setter
 public class SimpleELResolver extends CompositeELResolver
 {
-    public SimpleELResolver( Map< ?, ? > rootObjects, ThreadLocal< Stack< Map< String, Object > > > scopeStack, Map< String, Object > staticModel, ELTemplateManager em )
+    public SimpleELResolver( Map< ?, ? > rootObjects, ThreadLocal< Stack< MapBindings > > scopeStack, Map< String, Object > staticModel, ELTemplateManager em )
     {
         add( new FixedMapELResolver( rootObjects ) );
         add( new ThreadLocalRootResolver( scopeStack ) );

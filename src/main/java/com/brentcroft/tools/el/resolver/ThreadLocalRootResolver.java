@@ -1,5 +1,6 @@
 package com.brentcroft.tools.el.resolver;
 
+import com.brentcroft.tools.jstl.MapBindings;
 import jakarta.el.ELContext;
 import lombok.AllArgsConstructor;
 
@@ -9,7 +10,7 @@ import java.util.Stack;
 @AllArgsConstructor
 public class ThreadLocalRootResolver extends BaseELResolver
 {
-    private final ThreadLocal< Stack< Map< String, Object > > > scopeStack;
+    private final ThreadLocal< Stack< MapBindings > > scopeStack;
 
     @Override
     public Object getValue( ELContext context, Object base, Object property )
@@ -27,7 +28,7 @@ public class ThreadLocalRootResolver extends BaseELResolver
             return null;
         }
 
-        final Stack<Map< String, Object >> stack = scopeStack.get();
+        final Stack<MapBindings> stack = scopeStack.get();
         final String key = property.toString();
         for (int i = stack.size() - 1; i >= 0; i--) {
             final Map< String, Object > scope = stack.get( i );

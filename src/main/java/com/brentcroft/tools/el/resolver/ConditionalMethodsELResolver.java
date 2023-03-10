@@ -4,6 +4,7 @@ import com.brentcroft.tools.el.ELContextFactory;
 import com.brentcroft.tools.el.RetriesException;
 import com.brentcroft.tools.el.ReturnException;
 import com.brentcroft.tools.el.SimpleELContext;
+import com.brentcroft.tools.jstl.MapBindings;
 import com.sun.el.lang.EvaluationContext;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
@@ -19,7 +20,7 @@ import java.util.function.BiFunction;
 @AllArgsConstructor
 public class ConditionalMethodsELResolver extends BaseELResolver
 {
-    private final ThreadLocal< Stack< Map< String, Object > > > scopeStack;
+    private final ThreadLocal< Stack< MapBindings > > scopeStack;
     private final ELContextFactory elContextFactory;
 
     private static final BiFunction< ELContext, LambdaExpression, Boolean > returnHandlingTest = ( ELContext context, LambdaExpression test ) -> {
