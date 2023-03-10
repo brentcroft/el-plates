@@ -53,11 +53,12 @@ public class SimpleELContext extends ELContext
 
     public ELContext getChildContext( Map< String, Object> baseMap )
     {
+        ELResolver childResolver = simpleELContextFactory.newResolver( rootObjects );
         return new ELContext() {
             @Override
             public ELResolver getELResolver()
             {
-                return simpleELContextFactory.newResolver( baseMap );
+                return childResolver;
             }
 
             @Override
@@ -80,21 +81,21 @@ public class SimpleELContext extends ELContext
                 return SimpleELContext.this.getEvaluationListeners();
             }
 
-            public boolean isLambdaArgument(String arg) {
-                return SimpleELContext.this.isLambdaArgument(arg);
-            }
-            public Object getLambdaArgument(String arg)
-            {
-                return SimpleELContext.this.getLambdaArgument(arg);
-            }
-
-            public void enterLambdaScope(Map<String, Object> args)
-            {
-                SimpleELContext.this.enterLambdaScope( args );
-            }
-            public void exitLambdaScope() {
-                SimpleELContext.this.exitLambdaScope();
-            }
+//            public boolean isLambdaArgument(String arg) {
+//                return SimpleELContext.this.isLambdaArgument(arg);
+//            }
+//            public Object getLambdaArgument(String arg)
+//            {
+//                return SimpleELContext.this.getLambdaArgument(arg);
+//            }
+//
+//            public void enterLambdaScope(Map<String, Object> args)
+//            {
+//                SimpleELContext.this.enterLambdaScope( args );
+//            }
+//            public void exitLambdaScope() {
+//                SimpleELContext.this.exitLambdaScope();
+//            }
 //
 //            public Object getContext(Class<?> key) {
 //                return SimpleELContext.this.getContext( key );

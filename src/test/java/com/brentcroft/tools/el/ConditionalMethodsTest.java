@@ -68,27 +68,6 @@ public class ConditionalMethodsTest
     }
 
 
-    @Test
-    @Ignore
-    public void test_assignment()
-    {
-        MapBindings bindings = new MapBindings().withEntry( "colors", new MapBindings() );
-        el.eval( "colors.time = 10", bindings );
-        assertEquals( 10L, el.eval( "colors.time", bindings ) );
-
-        el.eval( "colors.whileDo( () -> time < 20, ( i ) -> ($self.time = time + i ), 12 )", bindings );
-        assertEquals( 20L, el.eval( "colors.time", bindings ) );
-
-        el.eval( "colors.whileDo( () -> true, () -> c:delay(500), 1, ( s ) -> ($self.timeWaiting = s ) )", bindings );
-
-        Double timeWaiting = ( Double ) el.eval( "colors.timeWaiting", bindings );
-
-        assertTrue(
-                format( "Time waiting is too large: %s", timeWaiting ),
-                Math.abs( 0.5 - timeWaiting ) < 0.1
-        );
-    }
-
 
     @Test
     public void test_thread_local_resolver_steps()

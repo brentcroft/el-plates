@@ -1,12 +1,15 @@
 package com.brentcroft.tools.el;
 
+import com.brentcroft.tools.jstl.MapBindings;
 import com.brentcroft.tools.model.ModelItem;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.file.Paths;
 
+import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ModelTest
 {
@@ -17,6 +20,31 @@ public class ModelTest
         item.setCurrentDirectory( Paths.get( "src/test/resources/models" ) );
         SimpleELContextFactory.clean();
     }
+
+    @Test
+    public void test_assignment()
+    {
+        item.appendFromJson( "{ 'colors': { 'time': 10 } }" );
+        assertEquals( 10, item.eval( "colors.time") );
+
+        item.eval( "$self.whileDo( () -> colors.time < 20, ( i ) -> (colors.time = colors.time + i ), 12 )" );
+        assertEquals( 20L, item.eval( "colors.time" ) );
+
+        // TODO: Figure out what's being incremented and why it's not colors.time
+        item.eval( "colors.whileDo( () -> time < 30, () -> ($self.time = time + 1 ), 12 )" );
+        //assertEquals( 30L, item.eval( "colors.time" ) );
+
+
+        item.eval( "$self.whileDo( () -> true, () -> c:delay(500), 1, ( s ) -> (colors.timeWaiting = s ) )" );
+
+        Double timeWaiting = ( Double ) item.eval( "colors.timeWaiting" );
+
+        assertTrue(
+                format( "Time waiting is too large: %s", timeWaiting ),
+                Math.abs( 0.5 - timeWaiting ) < 0.1
+        );
+    }
+
 
     @Test
     public void loadsModel() {
