@@ -55,7 +55,6 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         }
 
         Map< String, Object > baseMap = ( Map< String, Object > ) base;
-        Map< String, Object > rootMap = null;
 
         switch ( methodName.toString() )
         {
@@ -309,13 +308,13 @@ public class ConditionalMethodsELResolver extends BaseELResolver
     }
 
     @Getter
-    public static class ContextAndRoot {
+    public class ContextAndRoot {
         private final ELContext localContext;
         private final Map< String, Object > rootMap;
 
         public ContextAndRoot(ELContext context, Map< String, Object > baseMap) {
             this.localContext = context;
-            this.rootMap = baseMap;
+            this.rootMap = newContainer(  baseMap );
 //            if ( context instanceof EvaluationContext )
 //            {
 //                EvaluationContext ec = ( EvaluationContext ) context;
