@@ -70,18 +70,63 @@ public class ConditionalMethodsTest
 
 
     @Test
-    public void test_thread_local_resolver_steps()
+    public void args_resolved_before_model_and_local()
     {
         MapBindings scope = new MapBindings()
                 .withEntry( "colors", new MapBindings()
                         .withEntry( "x", 1 )
                         .withEntry( "y", 2 )
-                        .withEntry( "$$helloWorld", "c:println('hello world '.concat($self.plus()));\n# comments \n $self.minus({'x':100,'y':37})" )
-                        .withEntry( "$$plus", "x + y" )
+                        .withEntry( "$$helloWorld", "$self.minus({'x':100,'y':37})" )
                         .withEntry( "$$minus", "x - y" ) );
+
+        el.eval( "$static.x = 37; $static.y = 23", scope );
+        el.eval( "$local.x = 17; $local.y = 13", scope );
 
         assertEquals( 63L, el.eval( "colors.helloWorld()", scope ) );
     }
+
+    @Test
+    public void model_resolved_before_local()
+    {
+        MapBindings scope = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "x", 5 )
+                        .withEntry( "y", 2 )
+                        .withEntry( "$$helloWorld","$self.minus()" )
+                        .withEntry( "$$minus", "x - y" ) );
+
+        el.eval( "$static.x = 37; $static.y = 23", scope );
+        el.eval( "$local.x = 17; $local.y = 13", scope );
+
+        assertEquals( 3L, el.eval( "colors.helloWorld()", scope ) );
+    }
+
+    @Test
+    public void local_resolved_before_static()
+    {
+        MapBindings scope = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "$$helloWorld","$self.minus()" )
+                        .withEntry( "$$minus", "x - y" ) );
+
+        el.eval( "$static.x = 37; $static.y = 23", scope );
+        el.eval( "$local.x = 17; $local.y = 13", scope );
+        assertEquals( 4L, el.eval( "colors.helloWorld()", scope ) );
+    }
+
+    @Test
+    public void static_resolved()
+    {
+        MapBindings scope = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "$$helloWorld","$self.minus()" )
+                        .withEntry( "$$minus", "x - y" ) );
+
+        el.eval( "$static.x = 37; $static.y = 23", scope );
+        assertEquals( 14L, el.eval( "colors.helloWorld()", scope ) );
+    }
+
+
 
 
     @Test

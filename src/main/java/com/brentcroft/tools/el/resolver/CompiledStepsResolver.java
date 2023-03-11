@@ -48,6 +48,10 @@ public class CompiledStepsResolver extends BaseELResolver
 
         Map< String, Object > scope = newContainer( root );
 
+        // indicates it's a local scope
+        // and can receive assignments
+        scope.put( "$local", null );
+
         ValueExpression steps = ( ValueExpression ) root.get( stepsKey );
 
         scope.put( "$functionName", stepsKey );

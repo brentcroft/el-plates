@@ -3,9 +3,7 @@ package com.brentcroft.tools.el.resolver;
 import com.brentcroft.tools.el.ELContextFactory;
 import com.brentcroft.tools.el.RetriesException;
 import com.brentcroft.tools.el.ReturnException;
-import com.brentcroft.tools.el.SimpleELContext;
 import com.brentcroft.tools.jstl.MapBindings;
-import com.sun.el.lang.EvaluationContext;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
 import jakarta.el.LambdaExpression;
@@ -130,11 +128,11 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         base.put( key, runnableAction );
     }
 
-    private void maybePushRootMap( Map< String, Object > rootMap )
+    private void maybePushRootMap( MapBindings scope )
     {
-        if ( rootMap != null )
+        if ( scope != null )
         {
-            scopeStack.get().push( newContainer( rootMap ) );
+            scopeStack.get().push( newContainer( scope ) );
         }
     }
 
@@ -152,7 +150,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         {
             throw new ELException( "Must have arguments: tryExcept( LambdaExpression, LambdaExpression )" );
         }
-        maybePushRootMap( cr.getRootMap() );
+        maybePushRootMap( cr.getBindings() );
         try
         {
             long started = System.currentTimeMillis();
@@ -181,7 +179,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         }
         finally
         {
-            maybePopRootMap( cr.getRootMap() );
+            maybePopRootMap( cr.getBindings() );
         }
     }
 
@@ -218,7 +216,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                         ? ( LambdaExpression ) params[ 3 ]
                         : null
                 );
-        maybePushRootMap( cr.getRootMap() );
+        maybePushRootMap( cr.getBindings() );
         try
         {
             long started = System.currentTimeMillis();
@@ -250,7 +248,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         }
         finally
         {
-            maybePopRootMap( cr.getRootMap() );
+            maybePopRootMap( cr.getBindings() );
         }
     }
 
@@ -263,7 +261,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         {
             throw new ELException( "Must have arguments: ifThenElse( LambdaExpression, LambdaExpression, LambdaExpression )" );
         }
-        maybePushRootMap( cr.getRootMap() );
+        maybePushRootMap( cr.getBindings() );
         try
         {
             final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
@@ -280,7 +278,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         }
         finally
         {
-            maybePopRootMap( cr.getRootMap() );
+            maybePopRootMap( cr.getBindings() );
         }
     }
 
@@ -292,7 +290,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         {
             throw new ELException( "Must have arguments: ifThen( LambdaExpression, LambdaExpression )" );
         }
-        maybePushRootMap( cr.getRootMap() );
+        maybePushRootMap( cr.getBindings() );
         try
         {
             final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
@@ -304,35 +302,18 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         }
         finally
         {
-            maybePopRootMap( cr.getRootMap() );
+            maybePopRootMap( cr.getBindings() );
         }
     }
 
     @Getter
     public class ContextAndRoot {
         private final ELContext localContext;
-        private final Map< String, Object > rootMap;
+        private final MapBindings bindings;
 
         public ContextAndRoot(ELContext context, Map< String, Object > baseMap) {
             this.localContext = context;
-            this.rootMap = newContainer(  baseMap );
-//            if ( context instanceof EvaluationContext )
-//            {
-//                EvaluationContext ec = ( EvaluationContext ) context;
-//                if ( ec.getELContext() instanceof SimpleELContext )
-//                {
-//                    SimpleELContext selc = ( SimpleELContext ) ec.getELContext();
-//                    if ( selc.getRootObjects() != baseMap )
-//                    {
-//                        this.rootMap = ( Map< String, Object > ) selc.getRootObjects();
-//                        this.localContext = new EvaluationContext(
-//                            selc.getChildContext( baseMap ),
-//                            ec.getFunctionMapper(),
-//                            ec.getVariableMapper() );
-////                        this.localContext = selc.getChildContext( baseMap );
-//                    }
-//                }
-//            }
+            this.bindings = newContainer(  baseMap );
         }
     }
 }

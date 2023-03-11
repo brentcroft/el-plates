@@ -37,7 +37,7 @@ public class SimpleELContextFactory implements ELContextFactory
 
     private static final ThreadLocal< Stack< MapBindings > > scopeStack = ThreadLocal.withInitial( () -> {
         Stack< MapBindings > s = new Stack<>();
-        s.push( new MapBindings() );
+        s.push( new MapBindings().withEntry( "$local", null ) );
         return s;
     } );
 
