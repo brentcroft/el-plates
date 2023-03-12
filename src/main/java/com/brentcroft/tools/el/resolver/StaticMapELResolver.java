@@ -11,7 +11,6 @@ public class StaticMapELResolver extends MapELResolver
 {
     private Map< ?, ? > staticMap;
 
-
     @Override
     public Object getValue( ELContext context, Object base, Object property )
     {
@@ -19,24 +18,24 @@ public class StaticMapELResolver extends MapELResolver
         {
             return null;
         }
-
-        if ( "$static".equals( property ) )
+        else if ( "$static".equals( property ) )
         {
             context.setPropertyResolved( base, property );
             return staticMap;
         }
-
-        if ( base != null )
+        else if ( base != null )
         {
             return null;
         }
-
-        final String key = property.toString();
-        if ( staticMap.containsKey( key ) )
+        else
         {
-            context.setPropertyResolved( base, property );
-            return staticMap.get( key );
+            final String key = property.toString();
+            if ( staticMap.containsKey( key ) )
+            {
+                context.setPropertyResolved( base, property );
+                return staticMap.get( key );
+            }
+            return null;
         }
-        return null;
     }
 }

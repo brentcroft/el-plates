@@ -1,6 +1,5 @@
 package com.brentcroft.tools.el.resolver;
 
-import com.brentcroft.tools.el.ELContextFactory;
 import com.brentcroft.tools.el.RetriesException;
 import com.brentcroft.tools.el.ReturnException;
 import com.brentcroft.tools.jstl.MapBindings;
@@ -19,7 +18,6 @@ import java.util.function.BiFunction;
 public class ConditionalMethodsELResolver extends BaseELResolver
 {
     private final ThreadLocal< Stack< MapBindings > > scopeStack;
-    private final ELContextFactory elContextFactory;
 
     private static final BiFunction< ELContext, LambdaExpression, Boolean > returnHandlingTest = ( ELContext context, LambdaExpression test ) -> {
         try
@@ -44,11 +42,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
     @SuppressWarnings( "unchecked" )
     public Object invoke( ELContext context, Object base, Object methodName, Class< ? >[] paramTypes, Object[] params )
     {
-        if ( base == null || methodName == null )
-        {
-            return null;
-        }
-        if ( ! ( base instanceof Map ) )
+        if ( methodName == null || ! ( base instanceof Map ) )
         {
             return null;
         }
@@ -67,7 +61,6 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 ifThen( new ContextAndRoot(context, baseMap), params );
                 context.setPropertyResolved( base, methodName );
                 return base;
-
 
             case "ifThenElse":
                 if ( params.length < 3
@@ -103,29 +96,20 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 tryExcept( new ContextAndRoot(context, baseMap), params );
                 context.setPropertyResolved( base, methodName );
                 return base;
-
-
-            case "put":
-                if ( params.length != 2
-                        || ! ( params[ 0 ] instanceof String )
-                        || ! ( params[ 1 ] instanceof LambdaExpression ) )
-                {
-                    return null;
-                }
-                putRunnable( context, params, baseMap );
-                context.setPropertyResolved( base, methodName );
-                return base;
         }
 
         return null;
     }
 
-    private void putRunnable( ELContext localContext, Object[] params, Map< String, Object > base )
-    {
-        String key = ( String ) params[ 0 ];
-        LambdaExpression action = ( LambdaExpression ) params[ 1 ];
-        Runnable runnableAction = () -> action.invoke( localContext );
-        base.put( key, runnableAction );
+    @Getter
+    public class ContextAndRoot {
+        private final ELContext localContext;
+        private final MapBindings bindings;
+
+        public ContextAndRoot(ELContext context, Map< String, Object > baseMap) {
+            this.localContext = context;
+            this.bindings = newContainer(  baseMap );
+        }
     }
 
     private void maybePushRootMap( MapBindings scope )
@@ -303,17 +287,6 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         finally
         {
             maybePopRootMap( cr.getBindings() );
-        }
-    }
-
-    @Getter
-    public class ContextAndRoot {
-        private final ELContext localContext;
-        private final MapBindings bindings;
-
-        public ContextAndRoot(ELContext context, Map< String, Object > baseMap) {
-            this.localContext = context;
-            this.bindings = newContainer(  baseMap );
         }
     }
 }

@@ -23,6 +23,19 @@ public class MapMethodELResolver extends BaseELResolver
 
         String runnableKey = format( "%s", methodName );
 
+        // putting a named lambda provides a runnable (i.e. will accept no args)
+        if ("put".equals( runnableKey )) {
+            if ( params.length != 2
+                    || ! ( params[ 0 ] instanceof String )
+                    || ! ( params[ 1 ] instanceof LambdaExpression ) )
+            {
+                return null;
+            }
+            putAsRunnable( context, params, root );
+            context.setPropertyResolved( base, methodName );
+            return base;
+        }
+
         if ( !root.containsKey( runnableKey ) )
         {
             return null;
@@ -42,5 +55,14 @@ public class MapMethodELResolver extends BaseELResolver
             return null;
         }
         return null;
+    }
+
+
+    private void putAsRunnable( ELContext localContext, Object[] params, Map< String, Object > base )
+    {
+        String key = ( String ) params[ 0 ];
+        LambdaExpression action = ( LambdaExpression ) params[ 1 ];
+        Runnable runnableAction = () -> action.invoke( localContext );
+        base.put( key, runnableAction );
     }
 }
