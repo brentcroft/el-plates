@@ -12,32 +12,11 @@ import lombok.Getter;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
-import java.util.function.BiFunction;
 
 @AllArgsConstructor
 public class ConditionalMethodsELResolver extends BaseELResolver
 {
     private final ThreadLocal< Stack< MapBindings > > scopeStack;
-
-    private static final BiFunction< ELContext, LambdaExpression, Boolean > returnHandlingTest = ( ELContext context, LambdaExpression test ) -> {
-        try
-        {
-            return ( Boolean ) test.invoke( context );
-        }
-        catch ( ELException e )
-        {
-            ELException cause = e;
-            while ( cause.getCause() != null && cause.getCause() instanceof ELException )
-            {
-                cause = ( ELException ) cause.getCause();
-            }
-            if ( cause instanceof ReturnException )
-            {
-                return Boolean.parseBoolean( ( ( ReturnException ) cause ).get().toString() );
-            }
-            throw cause;
-        }
-    };
 
     @SuppressWarnings( "unchecked" )
     public Object invoke( ELContext context, Object base, Object methodName, Class< ? >[] paramTypes, Object[] params )
@@ -108,7 +87,9 @@ public class ConditionalMethodsELResolver extends BaseELResolver
 
         public ContextAndRoot(ELContext context, Map< String, Object > baseMap) {
             this.localContext = context;
-            this.bindings = newContainer(  baseMap );
+            this.bindings = baseMap == null
+                            ? null
+                            : newContainer(  baseMap );
         }
     }
 
@@ -127,6 +108,26 @@ public class ConditionalMethodsELResolver extends BaseELResolver
             scopeStack.get().pop();
         }
     }
+
+    private boolean returnHandlingTest( ELContext context, LambdaExpression test )  {
+        try
+        {
+            return ( boolean ) test.invoke( context );
+        }
+        catch ( ELException e )
+        {
+            ELException cause = e;
+            while ( cause.getCause() != null && cause.getCause() instanceof ELException )
+            {
+                cause = ( ELException ) cause.getCause();
+            }
+            if ( cause instanceof ReturnException )
+            {
+                return Boolean.parseBoolean( ( ( ReturnException ) cause ).get().toString() );
+            }
+            throw cause;
+        }
+    };
 
     private void tryExcept( ContextAndRoot cr, Object[] params )
     {
@@ -215,7 +216,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 return;
             }
 
-            while ( returnHandlingTest.apply( cr.getLocalContext(), test ) )
+            while ( returnHandlingTest( cr.getLocalContext(), test ) )
             {
                 currentLoop++;
                 if ( currentLoop > maxLoops )
@@ -249,7 +250,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         try
         {
             final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
-            if ( returnHandlingTest.apply( cr.getLocalContext(), test ) )
+            if ( returnHandlingTest( cr.getLocalContext(), test ) )
             {
                 final LambdaExpression thenOps = ( LambdaExpression ) params[ 1 ];
                 thenOps.invoke( cr.getLocalContext() );
@@ -278,7 +279,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         try
         {
             final LambdaExpression test = ( LambdaExpression ) params[ 0 ];
-            if ( returnHandlingTest.apply( cr.getLocalContext(), test ) )
+            if ( returnHandlingTest( cr.getLocalContext(), test ) )
             {
                 final LambdaExpression thenOps = ( LambdaExpression ) params[ 1 ];
                 thenOps.invoke( cr.getLocalContext() );
