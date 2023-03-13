@@ -3,7 +3,7 @@ package com.brentcroft.tools.jstl.tag;
 import com.brentcroft.tools.el.ELTemplateManager;
 import com.brentcroft.tools.jstl.JstlDocument;
 import com.brentcroft.tools.jstl.JstlTemplate;
-import com.brentcroft.tools.jstl.MapBindings;
+import com.brentcroft.tools.el.MapBindings;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 

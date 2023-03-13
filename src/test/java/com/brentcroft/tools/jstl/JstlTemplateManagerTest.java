@@ -1,15 +1,9 @@
 package com.brentcroft.tools.jstl;
 
-//import com.brentcroft.tools.el.StandardELFilter;
-
 import com.brentcroft.tools.el.*;
-import com.brentcroft.tools.model.AbstractModelItem;
-import com.brentcroft.tools.model.ModelItem;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
 
@@ -21,8 +15,6 @@ public class JstlTemplateManagerTest
     public void clean()
     {
         SimpleELContextFactory.clean();
-
-        ELTemplateManager el = jstl.getELTemplateManager();
     }
 
     @Test

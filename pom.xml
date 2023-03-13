@@ -58,13 +58,14 @@
 		</dependency>
 		<!--
 			TEST ONLY
-		-->
+
 		<dependency>
 			<groupId>com.brentcroft.tools</groupId>
 			<artifactId>el-model</artifactId>
 			<version>${el-model.version}</version>
 			<scope>test</scope>
 		</dependency>
+		-->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

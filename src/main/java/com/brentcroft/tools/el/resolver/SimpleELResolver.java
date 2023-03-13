@@ -1,7 +1,7 @@
 package com.brentcroft.tools.el.resolver;
 
 import com.brentcroft.tools.el.ELTemplateManager;
-import com.brentcroft.tools.jstl.MapBindings;
+import com.brentcroft.tools.el.MapBindings;
 import com.sun.el.stream.StreamELResolver;
 import jakarta.el.*;
 import lombok.Getter;

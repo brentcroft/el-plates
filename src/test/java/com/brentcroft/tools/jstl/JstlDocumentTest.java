@@ -1,5 +1,6 @@
 package com.brentcroft.tools.jstl;
 
+import com.brentcroft.tools.el.MapBindings;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.xml.sax.SAXException;

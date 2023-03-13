@@ -1,4 +1,4 @@
-package com.brentcroft.tools.jstl;
+package com.brentcroft.tools.el;
 
 
 import lombok.AllArgsConstructor;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.script.Bindings;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -21,7 +21,7 @@ import java.util.Map;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MapBindings extends LinkedHashMap< String, Object > implements Bindings
+public class MapBindings extends HashMap< String, Object > implements Bindings
 {
     private static final long serialVersionUID = 8422258558562588221L;
     private Map< String, Object > delegate;

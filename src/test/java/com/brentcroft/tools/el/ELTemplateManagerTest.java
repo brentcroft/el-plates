@@ -1,7 +1,5 @@
 package com.brentcroft.tools.el;
 
-import com.brentcroft.tools.jstl.MapBindings;
-import com.brentcroft.tools.model.ModelItem;
 import org.junit.Before;
 import org.junit.Test;
 

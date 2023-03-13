@@ -4,7 +4,7 @@ import com.brentcroft.tools.el.ELTemplateManager;
 import com.brentcroft.tools.jstl.JstlDocument;
 import com.brentcroft.tools.jstl.JstlTemplate;
 import com.brentcroft.tools.jstl.JstlTemplateManager;
-import com.brentcroft.tools.jstl.MapBindings;
+import com.brentcroft.tools.el.MapBindings;
 import lombok.extern.java.Log;
 import org.w3c.dom.Element;
 

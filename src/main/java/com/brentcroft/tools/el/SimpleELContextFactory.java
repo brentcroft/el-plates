@@ -1,7 +1,6 @@
 package com.brentcroft.tools.el;
 
 import com.brentcroft.tools.el.resolver.SimpleELResolver;
-import com.brentcroft.tools.jstl.MapBindings;
 import jakarta.el.*;
 import lombok.Getter;
 import lombok.extern.java.Log;

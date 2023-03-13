@@ -1,6 +1,6 @@
 package com.brentcroft.tools.el.resolver;
 
-import com.brentcroft.tools.jstl.MapBindings;
+import com.brentcroft.tools.el.MapBindings;
 import jakarta.el.ELContext;
 import lombok.AllArgsConstructor;
 

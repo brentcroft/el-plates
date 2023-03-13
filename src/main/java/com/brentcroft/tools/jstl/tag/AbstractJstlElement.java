@@ -2,7 +2,7 @@ package com.brentcroft.tools.jstl.tag;
 
 
 import com.brentcroft.tools.jstl.JstlTemplate;
-import com.brentcroft.tools.jstl.MapBindings;
+import com.brentcroft.tools.el.MapBindings;
 
 public abstract class AbstractJstlElement implements JstlElement
 {

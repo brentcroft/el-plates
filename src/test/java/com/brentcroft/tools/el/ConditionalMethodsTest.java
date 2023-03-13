@@ -1,28 +1,20 @@
 package com.brentcroft.tools.el;
 
-import com.brentcroft.tools.jstl.MapBindings;
-import com.brentcroft.tools.model.ModelItem;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import java.nio.file.Paths;
 import java.util.HashMap;
 
-import static java.lang.String.format;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 
 public class ConditionalMethodsTest
 {
-    private final ModelItem item = new ModelItem();
     private final ELTemplateManager el = new ELTemplateManager();
 
     @Before
     public void setCurrentDirectory()
     {
-        item.setCurrentDirectory( Paths.get( "src/test/resources/models" ) );
         SimpleELContextFactory.clean();
     }
 

@@ -4,7 +4,7 @@ import com.brentcroft.tools.el.Evaluator;
 import com.brentcroft.tools.el.ReturnException;
 import com.brentcroft.tools.el.StepsException;
 import com.brentcroft.tools.el.TextExpander;
-import com.brentcroft.tools.jstl.MapBindings;
+import com.brentcroft.tools.el.MapBindings;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
 import lombok.AllArgsConstructor;

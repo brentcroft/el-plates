@@ -1,5 +1,6 @@
 package com.brentcroft.tools.jstl;
 
+import com.brentcroft.tools.el.MapBindings;
 import org.junit.Test;
 
 

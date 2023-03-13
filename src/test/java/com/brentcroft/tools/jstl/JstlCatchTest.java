@@ -1,6 +1,7 @@
 package com.brentcroft.tools.jstl;
 
 
+import com.brentcroft.tools.el.MapBindings;
 import com.brentcroft.tools.jstl.tag.TagMessages;
 import jakarta.el.ELException;
 import org.junit.Assert;
