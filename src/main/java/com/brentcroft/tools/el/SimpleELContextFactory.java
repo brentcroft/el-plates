@@ -27,18 +27,17 @@ public class SimpleELContextFactory implements ELContextFactory
     private final Map< String, Method > mappedFunctions = new HashMap<>();
     private EvaluationListener[] listeners;
 
-    private CompositeELResolver customPrimaryResolvers;
-    private CompositeELResolver customSecondaryResolvers;
-
     public SimpleELContextFactory(ELTemplateManager el) {
         this.el = el;
     }
 
     private static final ThreadLocal< Stack< MapBindings > > scopeStack = ThreadLocal.withInitial( () -> {
-        Stack< MapBindings > s = new Stack<>();
-        s.push( new MapBindings()
+        MapBindings staticRoot = new MapBindings()
                 .withEntry( "$local", null )
-                .withEntry( "$functionName", "main" ));
+                .withEntry( "$functionName", "main" );
+
+        Stack< MapBindings > s = new Stack<>();
+        s.push( new MapBindings(staticRoot));
         return s;
     } );
 
@@ -61,6 +60,9 @@ public class SimpleELContextFactory implements ELContextFactory
 
         while(scopeStack.get().size() > 1) {
             scopeStack.get().pop();
+        }
+        if (!scopeStack.get().isEmpty()) {
+            scopeStack.get().peek().clear();
         }
         staticModel.clear();
     }
@@ -124,24 +126,6 @@ public class SimpleELContextFactory implements ELContextFactory
                 return mappedFunctions.get( ( prefix == null ? "" : prefix + ":" ) + localName );
             }
         };
-    }
-
-    public void addPrimaryELResolver( ELResolver cELResolver )
-    {
-        if ( customPrimaryResolvers == null )
-        {
-            customPrimaryResolvers = new CompositeELResolver();
-        }
-        customPrimaryResolvers.add( cELResolver );
-    }
-
-    public void addSecondaryELResolver( ELResolver cELResolver )
-    {
-        if ( customSecondaryResolvers == null )
-        {
-            customSecondaryResolvers = new CompositeELResolver();
-        }
-        customSecondaryResolvers.add( cELResolver );
     }
 
     ELResolver newResolver( Map< ?, ? > rootObjects )
