@@ -94,20 +94,6 @@ public class ELTemplateManager implements TextExpander, Evaluator
                         clazz );
     }
 
-    public void addPrimaryResolvers( ELResolver... resolvers )
-    {
-        Stream
-                .of( resolvers )
-                .forEachOrdered( elContextFactory::addPrimaryELResolver );
-    }
-
-    public void addSecondaryResolvers( ELResolver... resolvers )
-    {
-        Stream
-                .of( resolvers )
-                .forEachOrdered( elContextFactory::addSecondaryELResolver );
-    }
-
     public void addListeners( EvaluationListener... listeners )
     {
         elContextFactory.setListeners( listeners );
