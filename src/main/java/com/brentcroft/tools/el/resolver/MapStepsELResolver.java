@@ -62,7 +62,7 @@ public class MapStepsELResolver extends BaseELResolver
         String[] lastStep = { null };
 
         // indicates it's a local scope
-        // and can receive assignments
+        // and can receive and encapsulate assignments
         MapBindings localScope = new MapBindings()
                 .withEntry( "$local", null )
                 .withEntry( "$functionName", stepsKey );
