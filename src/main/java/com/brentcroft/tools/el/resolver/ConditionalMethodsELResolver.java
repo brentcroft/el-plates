@@ -211,7 +211,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 double durationSeconds = Long
                         .valueOf( System.currentTimeMillis() - started ).doubleValue() / 1000;
                 onTimeout
-                        .orElseThrow( () -> new RetriesException( maxLoops, test.toString() ) )
+                        .orElseThrow( () -> new RetriesException( maxLoops, durationSeconds, test.toString() ) )
                         .invoke( cr.getLocalContext(), durationSeconds );
                 return;
             }
@@ -224,7 +224,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                     double durationSeconds = Long
                             .valueOf( System.currentTimeMillis() - started ).doubleValue() / 1000;
                     onTimeout
-                            .orElseThrow( () -> new RetriesException( maxLoops, test.toString() ) )
+                            .orElseThrow( () -> new RetriesException( maxLoops, durationSeconds, test.toString() ) )
                             .invoke( cr.getLocalContext(), durationSeconds );
                     return;
                 }
