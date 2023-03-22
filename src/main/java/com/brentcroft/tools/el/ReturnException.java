@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import java.util.function.Supplier;
 
 @AllArgsConstructor
-public class ReturnException extends ELException implements Supplier<Object>
+public class ReturnException extends ELException implements Supplier< Object >
 {
     private Object value;
 

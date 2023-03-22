@@ -62,8 +62,8 @@ public class MapBindings extends HashMap< String, Object > implements Bindings
         return super.containsKey( a )
                ? super.get( a )
                : delegate != null
-                    ? delegate.get( a )
-                    : null;
+                 ? delegate.get( a )
+                 : null;
     }
 
     @Override

@@ -24,7 +24,8 @@ public class MapMethodELResolver extends BaseELResolver
         String runnableKey = format( "%s", methodName );
 
         // putting a named lambda provides a runnable (i.e. will accept no args)
-        if ("put".equals( runnableKey )) {
+        if ( "put".equals( runnableKey ) )
+        {
             if ( params.length != 2
                     || ! ( params[ 0 ] instanceof String )
                     || ! ( params[ 1 ] instanceof LambdaExpression ) )
@@ -36,7 +37,7 @@ public class MapMethodELResolver extends BaseELResolver
             return base;
         }
 
-        if ( !root.containsKey( runnableKey ) )
+        if ( ! root.containsKey( runnableKey ) )
         {
             return null;
         }

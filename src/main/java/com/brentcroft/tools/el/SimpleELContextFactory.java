@@ -27,7 +27,8 @@ public class SimpleELContextFactory implements ELContextFactory
     private final Map< String, Method > mappedFunctions = new HashMap<>();
     private EvaluationListener[] listeners;
 
-    public SimpleELContextFactory(ELTemplateManager el) {
+    public SimpleELContextFactory( ELTemplateManager el )
+    {
         this.el = el;
     }
 
@@ -37,17 +38,19 @@ public class SimpleELContextFactory implements ELContextFactory
                 .withEntry( "$functionName", "main" );
 
         Stack< MapBindings > s = new Stack<>();
-        s.push( new MapBindings(localRoot));
+        s.push( new MapBindings( localRoot ) );
         return s;
     } );
 
     private static final Map< String, Object > staticModel = new LinkedHashMap<>();
 
-    public ThreadLocal< Stack< MapBindings > > getScopeStack() {
+    public ThreadLocal< Stack< MapBindings > > getScopeStack()
+    {
         return scopeStack;
     }
 
-    public Map< String, Object > getStaticModel() {
+    public Map< String, Object > getStaticModel()
+    {
         return staticModel;
     }
 
@@ -56,12 +59,15 @@ public class SimpleELContextFactory implements ELContextFactory
      * Clear down the scope stack to one empty map.
      * Clear the static model.
      */
-    public static void clean() {
+    public static void clean()
+    {
 
-        while(scopeStack.get().size() > 1) {
+        while ( scopeStack.get().size() > 1 )
+        {
             scopeStack.get().pop();
         }
-        if (!scopeStack.get().isEmpty()) {
+        if ( ! scopeStack.get().isEmpty() )
+        {
             scopeStack.get().peek().clear();
         }
         staticModel.clear();

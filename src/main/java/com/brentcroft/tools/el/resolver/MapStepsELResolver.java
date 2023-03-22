@@ -1,10 +1,6 @@
 package com.brentcroft.tools.el.resolver;
 
-import com.brentcroft.tools.el.Evaluator;
-import com.brentcroft.tools.el.ReturnException;
-import com.brentcroft.tools.el.StepsException;
-import com.brentcroft.tools.el.TextExpander;
-import com.brentcroft.tools.el.MapBindings;
+import com.brentcroft.tools.el.*;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
 import lombok.AllArgsConstructor;
@@ -53,7 +49,8 @@ public class MapStepsELResolver extends BaseELResolver
 
         String steps = format( "%s", root.get( stepsKey ) ).trim();
 
-        if ( steps.isEmpty()) {
+        if ( steps.isEmpty() )
+        {
             context.setPropertyResolved( base, methodName );
             return null;
         }
@@ -67,7 +64,7 @@ public class MapStepsELResolver extends BaseELResolver
                 .withEntry( "$local", null )
                 .withEntry( "$functionName", stepsKey );
 
-        scopeStack.get().push(localScope);
+        scopeStack.get().push( localScope );
 
         try
         {

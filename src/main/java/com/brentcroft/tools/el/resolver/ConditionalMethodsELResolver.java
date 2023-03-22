@@ -1,8 +1,8 @@
 package com.brentcroft.tools.el.resolver;
 
+import com.brentcroft.tools.el.MapBindings;
 import com.brentcroft.tools.el.RetriesException;
 import com.brentcroft.tools.el.ReturnException;
-import com.brentcroft.tools.el.MapBindings;
 import jakarta.el.ELContext;
 import jakarta.el.ELException;
 import jakarta.el.LambdaExpression;
@@ -37,7 +37,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-                ifThen( new ContextAndRoot(context, baseMap), params );
+                ifThen( new ContextAndRoot( context, baseMap ), params );
                 context.setPropertyResolved( base, methodName );
                 return base;
 
@@ -49,7 +49,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-                ifThenElse( new ContextAndRoot(context, baseMap), params );
+                ifThenElse( new ContextAndRoot( context, baseMap ), params );
                 context.setPropertyResolved( base, methodName );
                 return base;
 
@@ -61,7 +61,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-                whileDo( new ContextAndRoot(context, baseMap), params );
+                whileDo( new ContextAndRoot( context, baseMap ), params );
                 context.setPropertyResolved( base, methodName );
                 return base;
 
@@ -72,7 +72,7 @@ public class ConditionalMethodsELResolver extends BaseELResolver
                 {
                     return null;
                 }
-                tryExcept( new ContextAndRoot(context, baseMap), params );
+                tryExcept( new ContextAndRoot( context, baseMap ), params );
                 context.setPropertyResolved( base, methodName );
                 return base;
         }
@@ -81,15 +81,17 @@ public class ConditionalMethodsELResolver extends BaseELResolver
     }
 
     @Getter
-    public class ContextAndRoot {
+    public class ContextAndRoot
+    {
         private final ELContext localContext;
         private final MapBindings bindings;
 
-        public ContextAndRoot(ELContext context, Map< String, Object > baseMap) {
+        public ContextAndRoot( ELContext context, Map< String, Object > baseMap )
+        {
             this.localContext = context;
             this.bindings = baseMap == null
                             ? null
-                            : newContainer(  baseMap );
+                            : newContainer( baseMap );
         }
     }
 
@@ -109,7 +111,8 @@ public class ConditionalMethodsELResolver extends BaseELResolver
         }
     }
 
-    private boolean returnHandlingTest( ELContext context, LambdaExpression test )  {
+    private boolean returnHandlingTest( ELContext context, LambdaExpression test )
+    {
         try
         {
             return ( boolean ) test.invoke( context );
@@ -127,13 +130,13 @@ public class ConditionalMethodsELResolver extends BaseELResolver
             }
             throw cause;
         }
-    };
+    }
 
     private void tryExcept( ContextAndRoot cr, Object[] params )
     {
         if ( params.length < 2 || ! ( params[ 0 ] instanceof LambdaExpression ) || ! ( params[ 1 ] instanceof LambdaExpression ) )
         {
-            throw new ELException( "Must have arguments: tryExcept( LambdaExpression, LambdaExpression )" );
+            throw new ELException( "Must have arguments: tryExcept( LambdaExpression, LambdaExpression[, LambdaExpression] )" );
         }
         maybePushRootMap( cr.getBindings() );
         try
@@ -146,8 +149,10 @@ public class ConditionalMethodsELResolver extends BaseELResolver
             }
             catch ( Exception handled )
             {
+                double durationSeconds = Long
+                        .valueOf( System.currentTimeMillis() - started ).doubleValue() / 1000;
                 LambdaExpression onEx = ( LambdaExpression ) params[ 1 ];
-                onEx.invoke( cr.getLocalContext(), skipOrRaise( handled ) );
+                onEx.invoke( cr.getLocalContext(), skipOrRaise( handled ), durationSeconds );
             }
             finally
             {

@@ -80,10 +80,11 @@ public class ELFunctions
 
     public static void assertTrue( boolean test, String failMessage )
     {
-        if( test ) {
+        if ( test )
+        {
             return;
         }
-        throw new AssertionError(failMessage);
+        throw new AssertionError( failMessage );
     }
 
     public static String username()

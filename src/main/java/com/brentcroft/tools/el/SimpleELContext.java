@@ -31,8 +31,10 @@ public class SimpleELContext extends ELContext
         this.variableMapper = SimpleELContextFactory.newVariableMapper();
         this.resolver = simpleELContextFactory.newResolver( rootObjects );
         this.importHandler = simpleELContextFactory.getImportHandler();
-        if (listeners != null) {
-            for (EvaluationListener el : listeners) {
+        if ( listeners != null )
+        {
+            for ( EvaluationListener el : listeners )
+            {
                 addEvaluationListener( el );
             }
         }
@@ -44,17 +46,20 @@ public class SimpleELContext extends ELContext
         return resolver;
     }
 
-    public ImportHandler getImportHandler() {
-        if (importHandler == null) {
+    public ImportHandler getImportHandler()
+    {
+        if ( importHandler == null )
+        {
             return super.getImportHandler();
         }
         return importHandler;
     }
 
-    public ELContext getChildContext( Map< String, Object> baseMap )
+    public ELContext getChildContext( Map< String, Object > baseMap )
     {
         ELResolver childResolver = simpleELContextFactory.newResolver( rootObjects );
-        return new ELContext() {
+        return new ELContext()
+        {
             @Override
             public ELResolver getELResolver()
             {
@@ -73,11 +78,13 @@ public class SimpleELContext extends ELContext
                 return variableMapper;
             }
 
-            public ImportHandler getImportHandler() {
+            public ImportHandler getImportHandler()
+            {
                 return SimpleELContext.this.getImportHandler();
             }
 
-            public List<EvaluationListener> getEvaluationListeners() {
+            public List< EvaluationListener > getEvaluationListeners()
+            {
                 return SimpleELContext.this.getEvaluationListeners();
             }
 

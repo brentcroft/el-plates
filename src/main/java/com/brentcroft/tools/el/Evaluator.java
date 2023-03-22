@@ -6,18 +6,19 @@ import java.util.stream.Stream;
 
 public interface Evaluator
 {
-    Object eval( String expression, Map<String, Object> scope );
+    Object eval( String expression, Map< String, Object > scope );
 
 
-    static Stream<String> stepsStream( Object value) {
+    static Stream< String > stepsStream( Object value )
+    {
         String uncommented = Stream
-                .of(value.toString().split( "\\s*[\\n\\r]+\\s*" ))
-                .filter( v -> !v.isEmpty() && !v.startsWith( "#" ) )
+                .of( value.toString().split( "\\s*[\\n\\r]+\\s*" ) )
+                .filter( v -> ! v.isEmpty() && ! v.startsWith( "#" ) )
                 .map( String::trim )
-                .collect( Collectors.joining(" "));
+                .collect( Collectors.joining( " " ) );
         return Stream
-                .of(uncommented.split( "\\s*[;]+\\s*" ))
+                .of( uncommented.split( "\\s*[;]+\\s*" ) )
                 .map( String::trim )
-                .filter( v -> !v.isEmpty() );
+                .filter( v -> ! v.isEmpty() );
     }
 }

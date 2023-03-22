@@ -14,7 +14,6 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 
@@ -54,7 +53,7 @@ public class ELTemplateManager implements TextExpander, Evaluator
 {
     private ExpressionFactory expressionFactory = null;
 
-    private final SimpleELContextFactory elContextFactory = new SimpleELContextFactory(this);
+    private final SimpleELContextFactory elContextFactory = new SimpleELContextFactory( this );
 
     public static final String DEFAULT_TEMPLATE_EXTENSION = ".tpl";
 
@@ -186,7 +185,7 @@ public class ELTemplateManager implements TextExpander, Evaluator
     public ValueExpression compile( String expression )
     {
         return getExpressionFactory()
-            .createValueExpression( context, "${" + expression + '}', Object.class );
+                .createValueExpression( context, "${" + expression + '}', Object.class );
     }
 
 
