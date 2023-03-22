@@ -57,7 +57,9 @@ public class MapStepsELResolver extends BaseELResolver
             return null;
         }
 
-        boolean logLines = root.containsKey( "$log" ) && Boolean.parseBoolean( root.get( "$log" ).toString() );
+        final String logStepsKey = "$logSteps";
+        boolean logSteps = root.containsKey( logStepsKey )
+                && Boolean.parseBoolean( root.get( logStepsKey ).toString() );
 
         int[] lineNumber = { 0 };
         String[] lastStep = { null };
@@ -81,14 +83,14 @@ public class MapStepsELResolver extends BaseELResolver
 
             Object[] lastResult = { null };
 
-            String indent = logLines
+            String indent = logSteps
                             ? IntStream
                                     .range( 0, scopeStack.get().size() )
                                     .mapToObj( i -> "  " )
                                     .collect( Collectors.joining() )
                             : "";
 
-            if ( logLines )
+            if ( logSteps )
             {
                 System.out.printf( "%s%s (steps)%n", indent, stepsKey );
             }
@@ -101,7 +103,7 @@ public class MapStepsELResolver extends BaseELResolver
                     } )
                     .map( step -> expander.expandText( step, scope ) )
                     .peek( step -> {
-                        if ( logLines )
+                        if ( logSteps )
                         {
                             System.out.printf( "%s[%d] -> %s%n", indent, lineNumber[ 0 ], step );
                         }
