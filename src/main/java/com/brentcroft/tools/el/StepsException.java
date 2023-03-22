@@ -14,7 +14,7 @@ public class StepsException extends RuntimeException
 
     public StepsException( int line, String step, Object base, Object methodName, Throwable cause )
     {
-        super( format( "Failed at step %s::%s[%s] %s", base, methodName, line, step ), cause );
+        super( format( "Failed at step: %s::%s[%s]: %s", base, methodName, line, step ), cause );
         this.line = line;
         this.step = step;
         this.base = base;
