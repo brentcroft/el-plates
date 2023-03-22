@@ -176,6 +176,7 @@ public class ConditionalMethodsTest
         MapBindings modelScope = new MapBindings()
                 .withEntry( "a", new MapBindings()
                         .withEntry( "b", new MapBindings()
+                                .withEntry( "$log", true )
                                 .withEntry( "counter", 1 )
                                 .withEntry( "$$countToTen", "$self.whileDo( () -> (counter < 10), () -> ($self.counter = counter + 1), 11 )" )
                                 .withEntry( "$$raiseException", "$self.tryExcept( () -> c:raise( 'Hello' ), (e) -> ($self.message = e.message) ); message" )
@@ -201,6 +202,7 @@ public class ConditionalMethodsTest
     {
         MapBindings modelScope = new MapBindings()
                 .withEntry( "a", new MapBindings()
+                        .withEntry( "$log", true )
                         .withEntry(
                                 "$$testPutRunnables",
                                 "$self.put( 'xxx', () -> c:println('hello from put runnable') );\n" +

@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 
 import java.util.Map;
 import java.util.Stack;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.lang.String.format;
 
@@ -55,6 +57,8 @@ public class MapStepsELResolver extends BaseELResolver
             return null;
         }
 
+        boolean logLines = root.containsKey( "$log" ) && Boolean.parseBoolean( root.get( "$log" ).toString() );
+
         int[] lineNumber = { 0 };
         String[] lastStep = { null };
 
@@ -77,6 +81,18 @@ public class MapStepsELResolver extends BaseELResolver
 
             Object[] lastResult = { null };
 
+            String indent = logLines
+                            ? IntStream
+                                    .range( 0, scopeStack.get().size() )
+                                    .mapToObj( i -> "  " )
+                                    .collect( Collectors.joining() )
+                            : "";
+
+            if ( logLines )
+            {
+                System.out.printf( "%s%s (steps)%n", indent, stepsKey );
+            }
+
             Evaluator
                     .stepsStream( steps )
                     .peek( step -> {
@@ -84,6 +100,12 @@ public class MapStepsELResolver extends BaseELResolver
                         lastStep[ 0 ] = step;
                     } )
                     .map( step -> expander.expandText( step, scope ) )
+                    .peek( step -> {
+                        if ( logLines )
+                        {
+                            System.out.printf( "%s -> %s%n", indent, step );
+                        }
+                    } )
                     .forEachOrdered( step -> lastResult[ 0 ] = evaluator.eval( step, scope ) );
             Object ret = lastResult[ 0 ];
             context.setPropertyResolved( base, methodName );
