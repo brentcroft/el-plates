@@ -103,7 +103,7 @@ public class MapStepsELResolver extends BaseELResolver
                     .peek( step -> {
                         if ( logLines )
                         {
-                            System.out.printf( "%s -> %s%n", indent, step );
+                            System.out.printf( "%s[%d] -> %s%n", indent, lineNumber[ 0 ], step );
                         }
                     } )
                     .forEachOrdered( step -> lastResult[ 0 ] = evaluator.eval( step, scope ) );
