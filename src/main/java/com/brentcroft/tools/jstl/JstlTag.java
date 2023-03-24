@@ -56,7 +56,7 @@ public enum JstlTag
      * &lt;c:while test="${ expression }"&gt;YOUR BLOCK GOES HERE&lt;/c:while&gt;
      * </pre>
      * <p>
-     *
+     * <p>
      * NB: We have one because its convenient.
      *
      * @see <a href="http://www.coderanch.com/t/281500/JSP/java/loop-tag-JSTL"
@@ -78,7 +78,7 @@ public enum JstlTag
     /**
      * The basic iteration tag, accepting many different collection types and
      * supporting sub-setting and other functionality.
-     *
+     * <p>
      * Note that within a loop, as well as <code>item</code> object,
      * and the <code>varStatus</code>, the following two shortcuts are available:
      *
@@ -86,9 +86,9 @@ public enum JstlTag
      *     <li>$index = varStatus.index (0 based index of the current item)</li>
      *     <li>$items (the result of the items value expressions)</li>
      * </ol>
-     *
-     *
-     *
+     * <p>
+     * <p>
+     * <p>
      * With collections or arrays:
      *
      * <pre>
@@ -98,7 +98,7 @@ public enum JstlTag
      *
      * &lt;c:foreach items="${ items }" var="item" varStatus="status" &gt;Item [${ status.index }] is: ${ item }&lt;/c:foreach&gt;
      * </pre>
-     *
+     * <p>
      * or with <code>begin</code>, <code>end</code> and optional
      * <code>step</code>:
      *
@@ -108,7 +108,7 @@ public enum JstlTag
      * &lt;c:foreach begin="${ 3 }" end="${ 8 }" varStatus="status" &gt;Item [${ status.index }]&lt;/c:foreach&gt;
      * </pre>
      * <p>
-     *
+     * <p>
      * or with everything:
      *
      * <pre>
@@ -132,7 +132,7 @@ public enum JstlTag
                             templateHandler.getELTemplateManager(),
 
                             // maybe empty only if begin and end are set
-                            getAttributeValue( attributes, "items", null, String.class ),
+                            expressionize( getAttributeValue( attributes, "items", null, String.class ) ),
 
                             // optional items with sensible defaults
                             // var only meaningful if items is not null
@@ -173,7 +173,7 @@ public enum JstlTag
     /**
      * Simple conditional tag that establishes a context for mutually exclusive
      * conditional operations, marked by &lt;c:when&gt; and &lt;c:otherwise&gt;.
-     *
+     * <p>
      * NB: Note that any immediate children: elements, text, or otherwise, which
      * are not &lt;c:when&gt; or &lt;c:otherwise&gt;, are silently discarded
      * during parsing.
@@ -247,7 +247,7 @@ public enum JstlTag
      * Catches any Throwable that occurs in its body and exposes it using the
      * value of the attribute <code>var</code>, or else "caughtException" if the
      * attribute <code>var</code> is empty or doesn't exist.
-     *
+     * <p>
      * NB: This is different to the JSTL specification which doesn't enforce a
      * default name, and hence exposure.
      *
@@ -272,7 +272,7 @@ public enum JstlTag
 
     /**
      * This is not part of JSTL, but is part of JSP itself.
-     *
+     * <p>
      * NB: Any inner content found during parsing will cause an error: this tag
      * should always be used in the short form as below.
      *
@@ -292,26 +292,26 @@ public enum JstlTag
                     final boolean relative = getAttributeValue( attributes, "relative", "true", Boolean.class );
                     final boolean recursive = getAttributeValue( attributes, "recursive", "false", Boolean.class );
 
-                    return new JstlInclude( templateHandler, page, relative, recursive);
+                    return new JstlInclude( templateHandler, page, relative, recursive );
                 }
             },
 
-  PARAM
-      {
-        @Override
-        public JstlElement newJstlElement( JstlTemplateHandler templateHandler, Map< String, String > attributes )
-        {
-          final String name = getAttributeValue( attributes, "name", String.class );
-          final String value = getAttributeValue( attributes, "value", String.class );
+    PARAM
+            {
+                @Override
+                public JstlElement newJstlElement( JstlTemplateHandler templateHandler, Map< String, String > attributes )
+                {
+                    final String name = getAttributeValue( attributes, "name", String.class );
+                    final String value = getAttributeValue( attributes, "value", String.class );
 
-          return new JstlParam( templateHandler.getELTemplateManager(), name, value);
-        }
-      },
+                    return new JstlParam( templateHandler.getELTemplateManager(), name, value );
+                }
+            },
 
 
     /**
      * This is not part of JSTL, but is convenient.
-     *
+     * <p>
      * If no level is specified then the default level is WARNING.
      *
      * <pre>

@@ -6,6 +6,8 @@ import com.brentcroft.tools.jstl.tag.TagMessages;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 
 public class JstlForEachTest
 {
@@ -100,7 +102,7 @@ public class JstlForEachTest
     public void test_FOREACH_ShortCut()
     {
         final String[] emptyAttrs = {
-                "<c:foreach items='red'/>"
+                "<c:foreach items='1'/>"
         };
 
         for ( String emptyAttr : emptyAttrs )
@@ -140,16 +142,22 @@ public class JstlForEachTest
                             .withEntry( "step", 1 ) );
             Assert.assertEquals( sample[ 1 ], actual );
         }
+    }
 
+
+    @Test
+    public void test_FOREACH_collections()
+    {
+        final String[][] samples = {
+                {"<c:foreach items='${ days }' var='day'>${ day }</c:foreach>", "mondaytuesdaywednesdaythursdayfridaysaturdaysunday"},
+                {"<c:foreach items='days' var='day'>${ day }</c:foreach>", "mondaytuesdaywednesdaythursdayfridaysaturdaysunday"},
+        };
         for ( String[] sample : samples )
         {
             final String actual = jstl.expandText(
                     sample[ 0 ],
                     new MapBindings()
-                            .withEntry( "days", DAYS )
-                            .withEntry( "begin", 2 )
-                            .withEntry( "count", 3 )
-                            .withEntry( "step", 1 ) );
+                            .withEntry( "days", Arrays.asList(DAYS) ) );
             Assert.assertEquals( sample[ 1 ], actual );
         }
     }

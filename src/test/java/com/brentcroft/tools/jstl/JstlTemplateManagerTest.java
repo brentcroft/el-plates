@@ -56,10 +56,10 @@ public class JstlTemplateManagerTest
     public void readme_test()
     {
         String text = "" +
-                "    <c:script>" +
+                "    ${" +
                 "        $local.days = [ 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday' ];\n" +
                 "        $local.day = 3\n" +
-                "    </c:script>\n" +
+                "    }\n" +
                 "    generated: ${ c:format( '%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL', [ c:now() ] ) }\n" +
                 "    <c:choose>\n" +
                 "        <c:when test=\"${ days[ day ] eq c:format( '%tA', [ c:now() ] ) }\">${ days[ day ] } is special</c:when>\n" +
