@@ -5,6 +5,7 @@ import jakarta.el.ELContext;
 import jakarta.el.ELException;
 import lombok.AllArgsConstructor;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -35,7 +36,7 @@ public class MapStepsELResolver extends BaseELResolver
         Map< String, Object > root = ( Map< String, Object > ) base;
         Map< String, Object > args = ( params != null && params.length > 0 && params[ 0 ] instanceof Map )
                                      ? ( Map< String, Object > ) params[ 0 ]
-                                     : null;
+                                     : new HashMap<>();
 
         String stepsKey = format( "$$%s", methodName );
 
@@ -56,6 +57,13 @@ public class MapStepsELResolver extends BaseELResolver
             context.setPropertyResolved( base, methodName );
             return null;
         }
+
+        String stepsArgsKey = format( "$$%s$args", methodName );
+        if ( root.containsKey( stepsArgsKey ) )
+        {
+            checkStepsArgs( args, root.get( stepsArgsKey ) );
+        }
+
 
         final String logStepsKey = "$logSteps";
         boolean logSteps = root.containsKey( logStepsKey )
@@ -139,5 +147,68 @@ public class MapStepsELResolver extends BaseELResolver
         {
             scopeStack.get().pop();
         }
+    }
+
+    private void checkStepsArgs( Map< String, Object > args, Object expectedArgs )
+    {
+        if ( ! ( expectedArgs instanceof Map ) )
+        {
+            if ( expectedArgs != null )
+            {
+                throw new IllegalArgumentException( format(
+                        "Expected args is not a Map: class=%s, value=%s ",
+                        expectedArgs.getClass().getSimpleName(),
+                        expectedArgs ) );
+            }
+            return;
+        }
+        @SuppressWarnings( "unchecked" )
+        Map< String, Object > ea = ( Map< String, Object > ) expectedArgs;
+        ea.forEach( ( k, v ) -> {
+            if ( ! args.containsKey( k ) )
+            {
+                if (v == null) {
+                    throw new IllegalArgumentException( format( "Missing mandatory arg: %s ", k ) );
+                }
+            }
+            if ( v instanceof Class )
+            {
+                Class< ? > c = ( Class< ? > ) v;
+                if ( ! args.containsKey( k ) )
+                {
+                    throw new IllegalArgumentException( format( "Missing mandatory arg: %s of type: %s", k, c.getSimpleName() ) );
+                }
+                Object value = args.get( k );
+                if ( ! c.isInstance(value ) )
+                {
+                    throw new IllegalArgumentException( format(
+                            "Invalid arg: %s, expected type %s, received type: %s ",
+                            k,
+                            c.getSimpleName(),
+                            value == null ? null : value.getClass().getSimpleName()
+                    ) );
+                }
+            } else {
+                if ( ! args.containsKey( k ) )
+                {
+                    // default value
+                    args.put( k, v );
+                    return;
+                }
+
+                Class< ? > c = v.getClass();
+                Object value = args.get( k );
+
+                if ( ! c.isInstance( value ) )
+                {
+                    throw new IllegalArgumentException( format(
+                            "Invalid arg: %s, expected type %s, received type: %s ",
+                            k,
+                            c.getSimpleName(),
+                            value == null ? null : value.getClass().getSimpleName()
+                    ) );
+                }
+            }
+        } );
     }
 }
