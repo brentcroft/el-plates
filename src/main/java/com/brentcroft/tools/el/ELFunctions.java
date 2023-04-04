@@ -58,6 +58,7 @@ public class ELFunctions
 
             em.mapFunction( "return", ELFunctions.class.getMethod( "raiseReturnException", Object.class ) );
             em.mapFunction( "raise", ELFunctions.class.getMethod( "raiseRuntimeException", Object.class ) );
+            em.mapFunction( "simpleTrace", ELFunctions.class.getMethod( "simpleTrace", Throwable.class ) );
             em.mapFunction( "assertTrue", ELFunctions.class.getMethod( "assertTrue", boolean.class, String.class ) );
 
             em.mapFunction( "inputSource", ELFunctions.class.getMethod( "inputSource", String.class ) );
@@ -76,6 +77,17 @@ public class ELFunctions
     public static void raiseRuntimeException( Object value )
     {
         throw new UserException( value.toString() );
+    }
+
+    public static String simpleTrace( Throwable exception )
+    {
+        Throwable t = exception;
+        List<String> items = new ArrayList<>();
+        while (t != null) {
+            items.add( String.format("%s: %s", exception.getClass().getSimpleName(), exception.getMessage()) );
+            t = t.getCause();
+        }
+        return String.join( "\n  ", items );
     }
 
     public static void assertTrue( boolean test, String failMessage )

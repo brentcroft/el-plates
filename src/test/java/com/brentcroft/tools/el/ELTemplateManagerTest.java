@@ -12,6 +12,7 @@ import java.util.GregorianCalendar;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 
 public class ELTemplateManagerTest
@@ -341,6 +342,24 @@ public class ELTemplateManagerTest
 
         assertEquals( "hello", el.eval( "SomeClassWithStaticMembers.ELSE", new MapBindings() ) );
         assertEquals( 60, el.eval( "SomeClassWithStaticMembers.sixty()", new MapBindings() ) );
+    }
+
+    @Test
+    public void test_simple_format() {
+        MapBindings bindings = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "$$xxx", "$local.tryExcept( () -> c:raise( errorText ), (e) -> c:return( c:simpleTrace( e ) ) )" )
+                        .withEntry( "$$xxx$args", new MapBindings().withEntry( "errorText", "goodbye" ) )
+                );
+
+        try {
+            el.eval( "$local.tryExcept( () -> c:raise( 'hello' ), (e) -> c:return( c:simpleTrace( e ) ) )", bindings );
+            fail( "Expected ReturnException");
+        } catch (ReturnException e) {
+            assertEquals( "UserException: hello", e.get() );
+        }
+
+        assertEquals( "UserException: goodbye", el.eval( "colors.xxx()", bindings ) );
     }
 
 }
