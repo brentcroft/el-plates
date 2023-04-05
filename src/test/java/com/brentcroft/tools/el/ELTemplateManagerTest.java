@@ -479,4 +479,18 @@ public class ELTemplateManagerTest
         String expression = "colors.xxx( { 'errorText': ( x ) -> c:format( 'y=%s', [ x ] ) } )";
         assertEquals("UserException: y=hello", el.eval( expression, bindings ));
     }
+
+    @Test
+    public void test_throws_exception() {
+        MapBindings bindings = new MapBindings();
+        String expression = "c:throw( e )";
+        try {
+            el.eval("$local.e = IllegalArgumentException( 'goodbye cruel world' )", bindings);
+            el.eval(expression, bindings);
+            fail("Expected IllegalArgumentException");
+        } catch ( ELException e) {
+            assertEquals("Problems calling function 'c:throw'", e.getMessage());
+            assertEquals("goodbye cruel world", e.getCause().getMessage());
+        }
+    }
 }
