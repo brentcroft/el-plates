@@ -58,6 +58,7 @@ public class ELFunctions
 
             em.mapFunction( "return", ELFunctions.class.getMethod( "raiseReturnException", Object.class ) );
             em.mapFunction( "raise", ELFunctions.class.getMethod( "raiseRuntimeException", Object.class ) );
+            em.mapFunction( "throw", ELFunctions.class.getMethod( "throwAnyException", Throwable.class ) );
             em.mapFunction( "simpleTrace", ELFunctions.class.getMethod( "simpleTrace", Throwable.class ) );
             em.mapFunction( "assertTrue", ELFunctions.class.getMethod( "assertTrue", boolean.class, String.class ) );
 
@@ -77,6 +78,11 @@ public class ELFunctions
     public static void raiseRuntimeException( Object value )
     {
         throw new UserException( value.toString() );
+    }
+
+    public static void throwAnyException( Throwable exception ) throws Throwable
+    {
+        throw exception;
     }
 
     public static String simpleTrace( Throwable exception )

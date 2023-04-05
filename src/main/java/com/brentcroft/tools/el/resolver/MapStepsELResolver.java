@@ -84,10 +84,7 @@ public class MapStepsELResolver extends BaseELResolver
         {
             MapBindings scope = newContainer( root );
 
-            if ( args != null )
-            {
-                scope.putAll( args );
-            }
+            scope.putAll( args );
 
             Object[] lastResult = { null };
 
@@ -156,7 +153,7 @@ public class MapStepsELResolver extends BaseELResolver
             if ( expectedArgs != null )
             {
                 throw new IllegalArgumentException( format(
-                        "Expected args is not a Map: class=%s, value=%s ",
+                        "Expected args is not a Map: class=%s, value=%s",
                         expectedArgs.getClass().getSimpleName(),
                         expectedArgs ) );
             }
@@ -167,8 +164,9 @@ public class MapStepsELResolver extends BaseELResolver
         ea.forEach( ( k, v ) -> {
             if ( ! args.containsKey( k ) )
             {
-                if (v == null) {
-                    throw new IllegalArgumentException( format( "Missing mandatory arg: %s ", k ) );
+                if ( v == null )
+                {
+                    throw new IllegalArgumentException( format( "Missing mandatory arg: %s", k ) );
                 }
             }
             if ( v instanceof Class )
@@ -179,30 +177,35 @@ public class MapStepsELResolver extends BaseELResolver
                     throw new IllegalArgumentException( format( "Missing mandatory arg: %s of type: %s", k, c.getSimpleName() ) );
                 }
                 Object value = args.get( k );
-                if ( ! c.isInstance(value ) )
+                if ( ! c.isInstance( value ) )
                 {
                     throw new IllegalArgumentException( format(
-                            "Invalid arg: %s, expected type %s, received type: %s ",
+                            "Invalid arg: %s, expected type %s, received type: %s",
                             k,
                             c.getSimpleName(),
                             value == null ? null : value.getClass().getSimpleName()
                     ) );
                 }
-            } else {
+            }
+            else
+            {
                 if ( ! args.containsKey( k ) )
                 {
                     // default value
                     args.put( k, v );
                     return;
                 }
+                else if ( v == null )
+                {
+                    return;
+                }
 
                 Class< ? > c = v.getClass();
                 Object value = args.get( k );
-
                 if ( ! c.isInstance( value ) )
                 {
                     throw new IllegalArgumentException( format(
-                            "Invalid arg: %s, expected type %s, received type: %s ",
+                            "Invalid arg: %s, expected type %s, received type: %s",
                             k,
                             c.getSimpleName(),
                             value == null ? null : value.getClass().getSimpleName()

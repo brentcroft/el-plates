@@ -1,5 +1,6 @@
 package com.brentcroft.tools.el;
 
+import jakarta.el.ELException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -362,4 +363,120 @@ public class ELTemplateManagerTest
         assertEquals( "UserException: goodbye", el.eval( "colors.xxx()", bindings ) );
     }
 
+    @Test
+    public void test_steps_args_not_a_map() {
+        MapBindings bindings = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "$$xxx", "$local.tryExcept( () -> c:raise( errorText ), (e) -> c:return( c:simpleTrace( e ) ) )" )
+                        .withEntry( "$$xxx$args", new MapBindings().withEntry( "errorText", null ) )
+                );
+        String expression = "colors.xxx( 123 )";
+        try {
+            el.eval( expression, bindings );
+            fail("Expected IllegalArgumentException");
+        } catch ( ELException e) {
+            assertEquals(format("Problem with expression: %s", expression), e.getMessage());
+            assertEquals("Steps call must have one argument that is a map, or no argument at all", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void test_steps_args_mandatory() {
+        MapBindings bindings = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "$$xxx", "$local.tryExcept( () -> c:raise( errorText ), (e) -> c:return( c:simpleTrace( e ) ) )" )
+                        .withEntry( "$$xxx$args", new MapBindings().withEntry( "errorText", null ) )
+                );
+
+        String expression = "colors.xxx()";
+
+        try {
+            el.eval( expression, bindings );
+            fail("Expected IllegalArgumentException");
+        } catch ( ELException e) {
+            assertEquals(format("Problem with expression: %s", expression), e.getMessage());
+            assertEquals("Missing mandatory arg: errorText", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void test_steps_args_type_check_01() {
+        MapBindings bindings = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "$$xxx", "$local.tryExcept( () -> c:raise( errorText ), (e) -> c:return( c:simpleTrace( e ) ) )" )
+                        .withEntry( "$$xxx$args", new MapBindings().withEntry( "errorText", "hello world" ) )
+                );
+
+        String expression = "colors.xxx( { 'errorText': 1.24 } )";
+
+        try {
+            el.eval( expression, bindings );
+            fail("Expected IllegalArgumentException");
+        } catch ( ELException e) {
+            assertEquals(format("Problem with expression: %s", expression), e.getMessage());
+            assertEquals("Invalid arg: errorText, expected type String, received type: Double", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void test_steps_args_type_check_02() {
+        MapBindings bindings = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "$$xxx", "$local.tryExcept( () -> c:raise( errorText ), (e) -> c:return( c:simpleTrace( e ) ) )" )
+                        .withEntry( "$$xxx$args", new MapBindings().withEntry( "errorText", "hello world" ) )
+                );
+
+        String expression = "colors.xxx( { 'errorText': ( x ) -> c:format( 'x=%s', [ x ] ) } )";
+
+        try {
+            el.eval( expression, bindings );
+            fail("Expected IllegalArgumentException");
+        } catch ( ELException e) {
+            assertEquals(format("Problem with expression: %s", expression), e.getMessage());
+            assertEquals("Invalid arg: errorText, expected type String, received type: LambdaExpression", e.getCause().getMessage());
+        }
+    }
+
+
+    @Test
+    public void test_steps_args_type_expect_lambda() {
+        MapBindings bindings = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "$$xxx", "$local.tryExcept( () -> c:raise( errorText ), (e) -> c:return( c:simpleTrace( e ) ) )" )
+                );
+
+        el.eval( "colors.$$xxx$args = { 'errorText': ( x ) -> c:format( 'x=%s', [ x ] ) }", bindings );
+
+        String expression = "colors.xxx( { 'errorText': 17 } )";
+
+        try {
+            el.eval( expression, bindings );
+            fail("Expected IllegalArgumentException");
+        } catch ( ELException e) {
+            assertEquals(format("Problem with expression: %s", expression), e.getMessage());
+            assertEquals("Invalid arg: errorText, expected type LambdaExpression, received type: Long", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void test_steps_args_lambda_default() {
+        MapBindings bindings = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "$$xxx", "$local.tryExcept( () -> c:raise( errorText( 'hello' ) ), (e) -> c:return( c:simpleTrace( e ) ) )" )
+                );
+        el.eval( "colors.$$xxx$args = { 'errorText': ( x ) -> c:format( 'x=%s', [ x ] ) }", bindings );
+        assertEquals("UserException: x=hello", el.eval( "colors.xxx()", bindings ));
+    }
+
+    @Test
+    public void test_steps_args_lambda_override() {
+        MapBindings bindings = new MapBindings()
+                .withEntry( "colors", new MapBindings()
+                        .withEntry( "$$xxx", "$local.tryExcept( () -> c:raise( errorText( 'hello' ) ), (e) -> c:return( c:simpleTrace( e ) ) )" )
+                );
+        el.eval( "colors.$$xxx$args = { 'errorText': ( x ) -> c:format( 'x=%s', [ x ] ) }", bindings );
+
+        String expression = "colors.xxx( { 'errorText': ( x ) -> c:format( 'y=%s', [ x ] ) } )";
+        assertEquals("UserException: y=hello", el.eval( expression, bindings ));
+    }
 }
