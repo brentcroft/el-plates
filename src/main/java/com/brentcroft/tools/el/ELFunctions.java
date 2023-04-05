@@ -90,7 +90,7 @@ public class ELFunctions
         Throwable t = exception;
         List<String> items = new ArrayList<>();
         while (t != null) {
-            items.add( String.format("%s: %s", exception.getClass().getSimpleName(), exception.getMessage()) );
+            items.add( String.format("%s: %s", t.getClass().getSimpleName(), t.getMessage()) );
             t = t.getCause();
         }
         return String.join( "\n  ", items );
